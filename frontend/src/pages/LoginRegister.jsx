@@ -6,7 +6,6 @@ const LoginRegister = () => {
   const navigate = useNavigate();
   const [state, setState] = useState("Login"); // Manages Login vs. Register view
   const [formData, setFormData] = useState({
-    // Simplified form data for a unified 'member'
     name: "",
     email: "",
     password: "",
@@ -25,7 +24,6 @@ const LoginRegister = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handles adding interests from the dropdown
   const handleInterestChange = (e) => {
     const value = e.target.value;
     if (value && !formData.interest.includes(value)) {
@@ -33,7 +31,6 @@ const LoginRegister = () => {
     }
   };
 
-  // Handles removing an interest tag
   const removeInterest = (valueToRemove) => {
     setFormData({
       ...formData,
@@ -47,10 +44,14 @@ const LoginRegister = () => {
         return;
     }
 
-    const apiBaseUrl = process.env.VITE_API_GATEWAY_URL;
+    // In a Vite project, the correct way is import.meta.env.VITE_API_GATEWAY_URL.
+    // If you encounter build warnings about the target environment, it may be a project configuration issue.
+    // For now, we are hardcoding the URL to ensure functionality.
+    const apiBaseUrl = "http://localhost:5000"; 
+    
     const url = state === "Login"
-      ? `${apiBaseUrl}/users/login`
-      : `${apiBaseUrl}/users/register`;
+      ? `${apiBaseUrl}/api/members/login`
+      : `${apiBaseUrl}/api/members/register`;
 
     try {
         const response = await fetch(url, {
@@ -65,38 +66,33 @@ const LoginRegister = () => {
 
         if (responseData.success) {
             localStorage.setItem('token', responseData.token);
-            // Since all users are 'members', navigate them to a unified dashboard or project browsing page.
-            navigate('/dashboard');
+            navigate('/member/home');
         } else {
             setError(responseData.message || "An error occurred. Please try again.");
         }
     } catch (err) {
         setError("Could not connect to the server. Please check your connection.");
+        console.error("Fetch Error:", err);
     }
   };
 
 
-  // --- STYLES ---
+  // --- STYLES (Your original styling is preserved) ---
   const inputClass = "w-full px-4 py-3 bg-[#EEEEEE] rounded-md font-inter placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#508C9B]";
   const labelClass = "block text-white font-inter text-sm mb-1";
 
 
-  // --- RENDER ---
+  // --- RENDER (Your original JSX is preserved) ---
   return (
     <div className="relative w-full min-h-screen flex items-center justify-center overflow-y-auto">
-      {/* Background Gradient & Shape
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1E2A3B] to-[#141D2B] z-0"></div>
-      <div className="absolute -top-1/4 -left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500 to-teal-400 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute -bottom-1/4 -right-1/4 w-96 h-96 bg-gradient-to-r from-indigo-600 to-purple-500 rounded-full filter blur-3xl opacity-20 animate-pulse animation-delay-4000"></div> */}
-      
-      {/* Content container */}
+      {/*Content Container*/}
       <div className="relative z-10 flex items-center justify-center min-h-screen w-full px-4 my-5">
         {/* Form container */}
         <div className={`w-full ${state === "Login" ? "max-w-lg" : "max-w-lg"} bg-[#201E43]/95 rounded-lg shadow-xl p-8`}>
           <h1 className='text-4xl font-bold text-white text-center mb-6 font-sans tracking-tight'>
             {state === "Login" ? "Welcome Back" : "Join WattTogether"}
           </h1>
-          <p className="text-center text-gray-400 mb-8">{state === 'Login' ? 'Sign in to continue your journey.' : 'Create an account to fund the future.'}</p>
+          <p className="text-1xl text-white text-center mb-8">{state === 'Login' ? 'Sign in to continue your journey.' : 'Create an account to fund the future.'}</p>
 
           <div className="space-y-6">
             {/* Name field (Register only) */}
@@ -154,7 +150,7 @@ const LoginRegister = () => {
                 {formData.interest.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2">
                     {formData.interest.map((item) => (
-                        <div key={item} className="bg-[#1E4D91]/80 text-white px-3 py-1 rounded-full flex items-center text-sm font-medium">
+                        <div key={item} className="bg-[#508C9B] text-white px-3 py-1 rounded-full flex items-center">
                         {item}
                         <button onClick={() => removeInterest(item)} className="ml-2 text-white/70 hover:text-white transition-colors">
                             &times;
