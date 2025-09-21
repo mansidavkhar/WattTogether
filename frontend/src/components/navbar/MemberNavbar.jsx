@@ -17,6 +17,7 @@ const MemberNavbar = () => {
               <Link to="/member/myinvestments" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Investments</Link>
               <Link to="/member/myprojects" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Projects</Link>
               <Link to="/member/network" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Network</Link>
+              <Link to="/member/wallet" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Wallet</Link>
               <button className="text-white text-xl hover:underline underline-offset-8 px-5 py-2 font-bold">Logout</button>
              </div>
           </div>

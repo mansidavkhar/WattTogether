@@ -17,6 +17,7 @@ import BrowseProjects from './pages/BrowseProjects'
 import MemberNavbar from './components/navbar/MemberNavbar'
 import MyInvestments from './pages/MyInvestments'
 import ProjectDescription from './pages/ProjectDescription'
+import Wallet from './pages/Wallet'
 //import SelectAmount from './pages/SelectAmount'
 //import ConfirmAmount from './pages/ConfirmAmount'
 //import PaymentFailed from './pages/PaymentFailed'
@@ -91,6 +92,10 @@ const router = createBrowserRouter([
   {
     path: '/member/network',
     element: <><MemberNavbar /><Network /><Footer /></>
+  },
+  {
+    path: '/member/wallet',
+    element: <><MemberNavbar /><Wallet /><Footer /></>
   },
 ])
 
