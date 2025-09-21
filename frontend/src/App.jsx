@@ -11,9 +11,9 @@ import StartAProject from './pages/StartAProject'
 import NewProjectDetails from './pages/NewProjectDetails'
 import MyProjects from './components/MyProject'
 //import Profile from './pages/Profile'
-//import Network from './pages/Network'
+import Network from './pages/Network'
 import BrowseProjects from './pages/BrowseProjects'
-import BrowseProjectsStatic from './pages/BrowseProjectsStatic'
+// import BrowseProjectsStatic from './pages/BrowseProjectsStatic'
 import MemberNavbar from './components/navbar/MemberNavbar'
 import MyInvestments from './pages/MyInvestments'
 import ProjectDescription from './pages/ProjectDescription'
@@ -88,10 +88,10 @@ const router = createBrowserRouter([
   //   path: '/member/profile',
   //   element: <><MemberNavbar /><Profile /><Footer /></>
   // },
-  // {
-  //   path: '/member/network',
-  //   element: <><MemberNavbar /><Network /><Footer /></>
-  // },
+  {
+    path: '/member/network',
+    element: <><MemberNavbar /><Network /><Footer /></>
+  },
 ])
 
 

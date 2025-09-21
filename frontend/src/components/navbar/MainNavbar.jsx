@@ -6,7 +6,7 @@ const MainNavbar = () => {
     return (
       <div className='navbar flex items-center justify-between py-3 px-10 lg:flex-row bg-[#508C9B]'>
           <div>
-            <a href="#" className="text-white font-[inter] text-3xl tracking-wider flex items-center"><img src={logo} alt="platform logo" /></a>
+            <a href="/" className="text-white font-[inter] text-3xl tracking-wider flex items-center"><img src={logo} alt="platform logo" /></a>
           </div>
 
           <div >
