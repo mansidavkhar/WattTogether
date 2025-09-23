@@ -5,6 +5,66 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
+    <script>
+      // ULTIMATE FIX: Run before ANY modules load
+      window.global = window.globalThis = window;
+      
+      // Create nextTick that actually works
+      const createNextTick = () => {
+        const callbacks = [];
+        let pending = false;
+        
+        const flush = () => {
+          pending = false;
+          const copies = callbacks.slice(0);
+          callbacks.length = 0;
+          for (let i = 0; i < copies.length; i++) {
+            try {
+              copies[i]();
+            } catch (e) {
+              console.error('nextTick error:', e);
+            }
+          }
+        };
+        
+        return function nextTick(cb, ...args) {
+          callbacks.push(() => cb.apply(null, args));
+          if (!pending) {
+            pending = true;
+            if (typeof queueMicrotask === 'function') {
+              queueMicrotask(flush);
+            } else {
+              Promise.resolve().then(flush);
+            }
+          }
+        };
+      };
+      
+      // Create single process object
+      const processObj = {
+        env: {},
+        browser: true,
+        version: 'v16.0.0',
+        versions: { node: 'v16.0.0' },
+        nextTick: createNextTick()
+      };
+      
+      // Lock it in place
+      window.process = processObj;
+      
+      // Override any future assignments
+      const descriptor = {
+        get: () => processObj,
+        set: () => {}, // Ignore attempts to replace
+        configurable: false,
+        enumerable: true
+      };
+      
+      Object.defineProperty(window, 'process', descriptor);
+      Object.defineProperty(globalThis, 'process', descriptor);
+      
+      console.log('✅ Process locked and loaded');
+    </script>
   </head>
   <body>
     <div id="root"></div>

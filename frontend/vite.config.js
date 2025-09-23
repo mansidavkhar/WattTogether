@@ -1,25 +1,73 @@
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(), 
+    react(),
+    tailwindcss(),
     nodePolyfills({
-      // To exclude specific polyfills, add them to this list.
-      exclude: [
-        'fs', // Excludes the 'fs' module polyfill.
-      ],
-      // Whether to polyfill `global`.
       globals: {
-        Buffer: true, // can also be 'build', 'dev', or false
-        global: true,
-        process: true,
+        Buffer: true,
+        global: false, // We handle this in index.html
+        process: false, // We handle this in index.html
       },
-      // Whether to polyfill `node:` protocol imports.
+      // Exclude problematic modules that conflict
+      exclude: [
+        'process',
+        'fs',
+        'path',
+        'child_process',
+        'net',
+        'tls',
+        'dns',
+      ],
       protocolImports: true,
     }),
-    tailwindcss()],
+  ],
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+      stream: 'stream-browserify',
+      crypto: 'crypto-browserify',
+      util: 'util',
+      assert: 'assert',
+      events: 'events',
+      http: 'stream-http',
+      https: 'https-browserify',
+      string_decoder: 'string_decoder',
+      url: 'url',
+      zlib: 'browserify-zlib',
+      // Don't alias process - let our index.html handle it
+    },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: [
+      'buffer',
+      'stream-browserify',
+      'util',
+      'assert',
+      'events',
+      'crypto-browserify',
+      'https-browserify',
+      'stream-http',
+      'string_decoder',
+      'url',
+      'zlib',
+    ],
+    // Force exclude problematic dependencies
+    exclude: [
+      'node-stdlib-browser',
+      '@web3auth/auth/node_modules/readable-stream',
+    ],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
 })
