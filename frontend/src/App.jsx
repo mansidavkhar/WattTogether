@@ -7,6 +7,7 @@ import ContactUs from './pages/ContactUs'
 import HowDoWeWork from './pages/HowDoWeWork'
 
 import {createBrowserRouter, RouterProvider} from 'react-router-dom'
+import Projects from './pages/Projects'
 import StartAProject from './pages/StartAProject'
 import NewProjectDetails from './pages/NewProjectDetails'
 import MyProjects from './components/MyProject'
@@ -18,6 +19,7 @@ import MemberNavbar from './components/navbar/MemberNavbar'
 import MyInvestments from './pages/MyInvestments'
 import ProjectDescription from './pages/ProjectDescription'
 import Wallet from './pages/Wallet'
+import ViewMyCampaigns from './pages/ViewMyCampaigns'
 //import SelectAmount from './pages/SelectAmount'
 //import ConfirmAmount from './pages/ConfirmAmount'
 //import PaymentFailed from './pages/PaymentFailed'
@@ -84,6 +86,14 @@ const router = createBrowserRouter([
   {
     path: '/member/myprojects',
     element: <><MemberNavbar /><MyProjects /><Footer /></>
+  },
+  {
+    path: '/member/projects',
+    element: <><MemberNavbar /><Projects /><Footer /></>
+  },
+  {
+    path: '/member/viewmycampaigns',
+    element: <><MemberNavbar /><ViewMyCampaigns /><Footer /></>
   },
   // {
   //   path: '/member/profile',
