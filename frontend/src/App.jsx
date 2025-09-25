@@ -13,7 +13,7 @@ import NewCampaignDetails from './pages/NewCampaignDetails'
 import MyProjects from './components/MyProject'
 //import Profile from './pages/Profile'
 import Network from './pages/Network'
-import BrowseProjects from './pages/BrowseProjects'
+import BrowseCampaigns from './pages/BrowseCampaigns'
 // import BrowseProjectsStatic from './pages/BrowseProjectsStatic'
 import MemberNavbar from './components/navbar/MemberNavbar'
 import MyInvestments from './pages/MyInvestments'
@@ -52,8 +52,8 @@ const router = createBrowserRouter([
     element: <><MemberNavbar /><MainLandingPage /><Footer /></>
   },
   {
-    path: '/member/browseprojects',
-    element: <><MemberNavbar /><BrowseProjects /><Footer /></>
+    path: '/member/browsecampaigns',
+    element: <><MemberNavbar /><BrowseCampaigns /><Footer /></>
   },
   {
     path: '/member/myinvestments',

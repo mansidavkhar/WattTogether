@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchCampaigns, selectCampaigns, selectCampaignsStatus, selectCampaignsError } from "../store/campaignsSlice";
 import ProjectCard from "../components/ProjectCard";
 
-export default function BrowseProjects() {
+export default function BrowseCampaigns() {
   const dispatch = useDispatch();
   const projects = useSelector(selectCampaigns);
   const status = useSelector(selectCampaignsStatus);

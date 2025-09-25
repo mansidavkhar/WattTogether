@@ -13,7 +13,7 @@ const MemberNavbar = () => {
             {/*for responsiveness add classes in the above div */}
             <div className="space-x-10">
               {/* <Link to="/member/home" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Home</Link> */}
-              <Link to="/member/browseprojects" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Browse Projects</Link>
+              <Link to="/member/browsecampaigns" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Browse Campaigns</Link>
               <Link to="/member/myinvestments" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Investments</Link>
               <Link to="/member/projects" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Projects</Link>
               <Link to="/member/network" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Network</Link>
