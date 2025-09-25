@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-// Map backend Campaign model -> UI shape expected by components (e.g., ProjectCard)
+// Map backend Campaign model to UI shape expected by components like ProjectCard
 const mapCampaignToUI = (c) => ({
   _id: c._id,
   project_name: c.title,
@@ -33,11 +33,15 @@ export const fetchCampaigns = createAsyncThunk(
       }
 
       const data = await res.json();
+
+      console.log('Fetched campaigns data:', data); // debug log
+
       if (data?.success) {
         return (data.campaigns || []).map(mapCampaignToUI);
       }
       throw new Error(data?.message || 'Failed to fetch campaigns');
     } catch (err) {
+      console.error('Error fetching campaigns:', err);
       return rejectWithValue(err.message || 'Unknown error');
     }
   }
@@ -52,7 +56,6 @@ const campaignsSlice = createSlice({
     lastFetched: null,
   },
   reducers: {
-    // Allow manual set/clear if needed later
     setCampaigns(state, action) {
       state.items = (action.payload || []).map(mapCampaignToUI);
       state.status = 'succeeded';
@@ -87,7 +90,6 @@ const campaignsSlice = createSlice({
 
 export const { setCampaigns, clearCampaigns } = campaignsSlice.actions;
 
-// Selectors
 export const selectCampaigns = (state) => state.campaigns.items;
 export const selectCampaignsStatus = (state) => state.campaigns.status;
 export const selectCampaignsError = (state) => state.campaigns.error;
