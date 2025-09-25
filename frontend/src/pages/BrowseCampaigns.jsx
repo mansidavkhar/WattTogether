@@ -31,7 +31,7 @@ export default function BrowseCampaigns() {
         <div className="text-center text-red-600 py-10">{error || 'Failed to load campaigns'}</div>
       )}
       {status === 'succeeded' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 place-items-center">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-10 place-items-center">
           {campaigns.map((campaign, index) => (
             <ProjectCard key={campaign._id || index} project={campaign} />
           ))}
