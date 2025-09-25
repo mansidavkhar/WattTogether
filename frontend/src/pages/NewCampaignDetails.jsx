@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const NewProjectDetails = () => {
+const NewCampaignDetails = () => {
   const navigator = useNavigate()
   const [formData, setFormData] = useState({
     projectName: '',
@@ -212,4 +212,4 @@ const NewProjectDetails = () => {
   );
 };
 
-export default NewProjectDetails;
+export default NewCampaignDetails;

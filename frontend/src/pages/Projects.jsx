@@ -19,7 +19,7 @@ const Projects = () => {
   return (
     <div className="p-30">
     <div className="flex flex-col space-y-4 p-6 max-w-md mx-auto">
-      <Link to="/member/startaproject" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">
+      <Link to="/member/startacampaign" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">
       <button
         onClick={handleStartCampaign}
         className="w-full bg-[#508C9B] hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-300 shadow-md"

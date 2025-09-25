@@ -8,8 +8,8 @@ import HowDoWeWork from './pages/HowDoWeWork'
 
 import {createBrowserRouter, RouterProvider} from 'react-router-dom'
 import Projects from './pages/Projects'
-import StartAProject from './pages/StartAProject'
-import NewProjectDetails from './pages/NewProjectDetails'
+import StartACampaign from './pages/StartACampaign'
+import NewCampaignDetails from './pages/NewCampaignDetails'
 import MyProjects from './components/MyProject'
 //import Profile from './pages/Profile'
 import Network from './pages/Network'
@@ -76,12 +76,12 @@ const router = createBrowserRouter([
   //   element: <><MemberNavbar /><ConfirmAmount /><Footer /></>
   // },
   {
-    path: '/member/startaproject',
-    element: <><MemberNavbar /><StartAProject /><Footer /></>
+    path: '/member/startacampaign',
+    element: <><MemberNavbar /><StartACampaign /><Footer /></>
   },
   {
-    path: '/member/newprojectdetails',
-    element: <><MemberNavbar /><NewProjectDetails /><Footer /></>
+    path: '/member/newcampaigndetails',
+    element: <><MemberNavbar /><NewCampaignDetails /><Footer /></>
   },
   {
     path: '/member/myprojects',

@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import {Link} from 'react-router-dom';
 
-const StartAProject = () => {
+const StartACampaign = () => {
   const navigate = useNavigate();
 
   const handleStartProject = () => {
     // Add navigation logic here
-    navigate('/project-form'); // Adjust the route as needed
+    navigate('/campaign-form'); // Adjust the route as needed
   };
 
   return (
@@ -24,12 +24,12 @@ const StartAProject = () => {
 
         {/* Start Project Button */}
         <div className="text-center">
-        <Link to="/member/newprojectdetails">
+        <Link to="/member/newcampaigndetails">
           <button
             onClick={handleStartProject}
             className="bg-[#508C9B] hover:bg-[#457a87] text-white font-semibold py-3 px-8 rounded-md transition-colors duration-200"
           >
-            Start a Project
+            Start a Campaign
           </button>
           </Link>
         </div>
@@ -38,4 +38,4 @@ const StartAProject = () => {
   );
 };
 
-export default StartAProject;
+export default StartACampaign;
