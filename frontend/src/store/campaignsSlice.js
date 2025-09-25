@@ -21,10 +21,13 @@ const mapCampaignToUI = (c) => ({
 // Async thunk to fetch campaigns (public browse)
 export const fetchCampaigns = createAsyncThunk(
   'campaigns/fetchCampaigns',
-  async (_, { rejectWithValue }) => {
+  async (token, { rejectWithValue }) => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?status=active`, {
         method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) {
@@ -34,18 +37,16 @@ export const fetchCampaigns = createAsyncThunk(
 
       const data = await res.json();
 
-      console.log('Fetched campaigns data:', data); // debug log
-
       if (data?.success) {
         return (data.campaigns || []).map(mapCampaignToUI);
       }
       throw new Error(data?.message || 'Failed to fetch campaigns');
     } catch (err) {
-      console.error('Error fetching campaigns:', err);
       return rejectWithValue(err.message || 'Unknown error');
     }
   }
 );
+
 
 const campaignsSlice = createSlice({
   name: 'campaigns',

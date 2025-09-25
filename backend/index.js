@@ -31,6 +31,9 @@ const connectDB = async () => {
 
 connectDB();
 
+// Serve uploads folder as static for cover images, etc.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // API Routes
 app.use('/api/members', require('./routes/memberRoutes'));
 app.use('/api/campaigns', require('./routes/campaignRoutes'));
