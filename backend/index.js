@@ -33,6 +33,8 @@ connectDB();
 
 // API Routes
 app.use('/api/members', require('./routes/memberRoutes'));
+app.use('/api/campaigns', require('./routes/campaignRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
 
 // JWKS endpoint directly in index.js
 app.get('/.well-known/jwks.json', async (req, res) => {

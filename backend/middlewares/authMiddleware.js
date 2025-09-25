@@ -1,23 +1,20 @@
 const jwt = require('jsonwebtoken');
 
-// This middleware function verifies the JWT token from the request header.
+// Verify JWT from either 'x-auth-token' or 'Authorization: Bearer <token>'
 const authMiddleware = (req, res, next) => {
-    // Get token from the 'x-auth-token' header
-    const token = req.header('x-auth-token');
+    let token = req.header('x-auth-token');
+    if (!token && req.headers.authorization) {
+        const m = req.headers.authorization.match(/^Bearer\s+(.*)$/i);
+        if (m) token = m[1];
+    }
 
-    // Check if no token is provided
     if (!token) {
         return res.status(401).json({ message: 'No token, authorization denied.' });
     }
 
     try {
-        // Verify the token using the secret key
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Add the decoded member payload (which contains the ID) to the request object
         req.member = decoded.member;
-        
-        // Proceed to the next middleware or route handler
         next();
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid.' });

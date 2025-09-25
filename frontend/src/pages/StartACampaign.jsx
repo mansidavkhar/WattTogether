@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 const StartACampaign = () => {
   const navigate = useNavigate();
 
-  const handleStartProject = () => {
+  const handleStartCampaign = () => {
     // Add navigation logic here
     navigate('/campaign-form'); // Adjust the route as needed
   };
@@ -22,11 +22,11 @@ const StartACampaign = () => {
           </h1>
         </div>
 
-        {/* Start Project Button */}
+        {/* Start Campaign Button */}
         <div className="text-center">
         <Link to="/member/newcampaigndetails">
           <button
-            onClick={handleStartProject}
+            onClick={handleStartCampaign}
             className="bg-[#508C9B] hover:bg-[#457a87] text-white font-semibold py-3 px-8 rounded-md transition-colors duration-200"
           >
             Start a Campaign

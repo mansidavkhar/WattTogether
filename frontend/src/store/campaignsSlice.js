@@ -1,16 +1,30 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-// Async thunk to fetch campaigns (projects)
+// Map backend Campaign model -> UI shape expected by components (e.g., ProjectCard)
+const mapCampaignToUI = (c) => ({
+  _id: c._id,
+  project_name: c.title,
+  description: c.description,
+  about_entrepreneur: c.aboutEntrepreneur,
+  cover_image: c.coverImageUrl,
+  fund_type: c.fundingType,
+  amount: c.fundingGoalINR,
+  funding_deadline: c.fundingDeadline,
+  project_deadline: c.projectDeadline,
+  amountRaisedINR: c.amountRaisedINR,
+  backersCount: c.backersCount,
+  owner: c.owner,
+  status: c.status,
+  createdAt: c.createdAt,
+});
+
+// Async thunk to fetch campaigns (public browse)
 export const fetchCampaigns = createAsyncThunk(
   'campaigns/fetchCampaigns',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/projects/getall`, {
+      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?status=active`, {
         method: 'GET',
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
       });
 
       if (!res.ok) {
@@ -20,7 +34,7 @@ export const fetchCampaigns = createAsyncThunk(
 
       const data = await res.json();
       if (data?.success) {
-        return data.projects || [];
+        return (data.campaigns || []).map(mapCampaignToUI);
       }
       throw new Error(data?.message || 'Failed to fetch campaigns');
     } catch (err) {
@@ -40,7 +54,7 @@ const campaignsSlice = createSlice({
   reducers: {
     // Allow manual set/clear if needed later
     setCampaigns(state, action) {
-      state.items = action.payload || [];
+      state.items = (action.payload || []).map(mapCampaignToUI);
       state.status = 'succeeded';
       state.error = null;
       state.lastFetched = Date.now();
