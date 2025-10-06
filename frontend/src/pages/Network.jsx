@@ -1,334 +1,349 @@
-
-
-// const Network = () => {
-//     return (
-//         <div>
-//             <h1>Network Page</h1>
-//             <p>Welcome to the Network page.</p>
-//         </div>
-//     );
-// };
-
-
-// export default Network;
-
-
-
-
-
-
-
-
 import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import axios from 'axios';
 
+const API_URL = 'http://localhost:5000/api';
 
 const Network = () => {
-    const [socket, setSocket] = useState(null);
-    const [message, setMessage] = useState('');
+    const [user, setUser] = useState(null);
+    const [view, setView] = useState('loading'); // loading, setup, discover, chat
+    
+    // Discover View State
+    const [members, setMembers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Chat View State
+    const [connections, setConnections] = useState([]); // This will hold ACCEPTED connections
+    const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [isConnected, setIsConnected] = useState(false);
-    const [typingUsers, setTypingUsers] = useState(new Set());
+    const [newMessage, setNewMessage] = useState('');
+    
+    // Socket & Presence State
+    const [socket, setSocket] = useState(null);
+    const [onlineUserIds, setOnlineUserIds] = useState(new Set());
+
+    // Connection Requests State
+    const [pendingRequests, setPendingRequests] = useState([]);
+    
     const messagesEndRef = useRef(null);
-    const typingTimeoutRef = useRef(null);
 
-
-    // Auto-scroll to bottom when new messages arrive
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-
-    // Initialize Socket.IO connection
+    // Initial data fetch for the current user
     useEffect(() => {
         const token = localStorage.getItem('token');
-       
         if (!token) {
-            console.error('No authentication token found');
+            // Redirect to login or handle not logged in case
             return;
         }
 
-
-        const newSocket = io('http://localhost:5000', {
-            auth: {
-                token: token
+        const fetchUserData = async () => {
+            try {
+                const res = await axios.get(`${API_URL}/members/me`, {
+                    headers: { 'x-auth-token': token }
+                });
+                const currentUser = res.data;
+                setUser(currentUser);
+                if (currentUser.profileSetupComplete) {
+                    setView('discover');
+                    // Pass user object to fetchConnections to avoid state dependency issue
+                    fetchConnections(token, currentUser); 
+                } else {
+                    setView('setup');
+                }
+            } catch (error) {
+                console.error("Failed to fetch user data", error);
+                // Handle error, maybe redirect to login
             }
-        });
-
-
-        newSocket.on('connect', () => {
-            console.log('Connected to Socket.IO server');
-            setIsConnected(true);
-            newSocket.emit('join_network');
-        });
-
-
-        newSocket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error.message);
-            setIsConnected(false);
-        });
-
-
-        newSocket.on('receive_message', (data) => {
-            setMessages((prevMessages) => [...prevMessages, data]);
-        });
-
-
-        newSocket.on('user_joined', (data) => {
-            const notification = {
-                type: 'system',
-                message: `${data.memberName} joined the network`,
-                timestamp: data.timestamp
-            };
-            setMessages((prevMessages) => [...prevMessages, notification]);
-        });
-
-
-        newSocket.on('user_left', (data) => {
-            const notification = {
-                type: 'system',
-                message: `${data.memberName} left the network`,
-                timestamp: data.timestamp
-            };
-            setMessages((prevMessages) => [...prevMessages, notification]);
-        });
-
-
-        newSocket.on('user_typing', (data) => {
-            setTypingUsers((prev) => new Set(prev).add(data.memberName));
-        });
-
-
-        newSocket.on('user_stop_typing', (data) => {
-            setTypingUsers((prev) => {
-                const updated = new Set(prev);
-                const userToRemove = Array.from(updated).find(() => true);
-                updated.delete(userToRemove);
-                return updated;
-            });
-        });
-
-
-        newSocket.on('disconnect', () => {
-            console.log('Disconnected from Socket.IO server');
-            setIsConnected(false);
-        });
-
-
-        setSocket(newSocket);
-
-
-        return () => {
-            newSocket.close();
         };
+
+        fetchUserData();
     }, []);
 
+    // Socket connection and event listeners
+    useEffect(() => {
+        if (user) {
+            const token = localStorage.getItem('token');
+            const newSocket = io('http://localhost:5000', {
+                auth: { token }
+            });
 
-    // Handle message send
+            newSocket.on('connect', () => {
+                console.log('Connected to Socket.IO for networking!');
+            });
+            
+            newSocket.on('online_users_updated', (onlineIds) => {
+                setOnlineUserIds(new Set(onlineIds));
+            });
+
+            newSocket.on('receive_private_message', (message) => {
+                // Since the server sends the message back to the sender too,
+                // we check if the active chat matches the message sender or recipient
+                if (activeChat && (message.sender === activeChat._id || message.recipient === activeChat._id)) {
+                     setMessages(prev => {
+                        // Add a check to prevent rare duplicate renders
+                        if (prev.find(m => m._id === message._id)) {
+                            return prev;
+                        }
+                        return [...prev, message];
+                    });
+                }
+            });
+            
+            setSocket(newSocket);
+
+            return () => newSocket.close();
+        }
+    }, [user, activeChat]);
+
+    // Auto-scroll chat to the latest message
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+    
+    // --- API Call Functions ---
+
+    const fetchMembers = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await axios.get(`${API_URL}/network/members?search=${searchTerm}`, {
+                headers: { 'x-auth-token': token }
+            });
+            setMembers(res.data);
+        } catch (error) {
+            console.error("Failed to fetch members", error);
+        }
+    };
+    
+    const fetchConnections = async (token, currentUser) => {
+        try {
+            const res = await axios.get(`${API_URL}/network/connections`, {
+                headers: { 'x-auth-token': token }
+            });
+
+            const allConnections = res.data;
+
+            const incomingRequests = allConnections.filter(c => 
+                c.status === 'pending' && c.recipient._id.toString() === currentUser._id
+            );
+
+            const accepted = allConnections
+                .filter(c => c.status === 'accepted')
+                .map(c => c.requester._id.toString() === currentUser._id ? c.recipient : c.requester);
+            
+            setPendingRequests(incomingRequests);
+            setConnections(accepted);
+
+        } catch (error) {
+            console.error("Failed to fetch connections", error);
+        }
+    };
+    
+    const handleProfileUpdate = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        try {
+            const res = await axios.put(`${API_URL}/network/profile`, {
+                name: user.name,
+                bio: user.bio,
+                location: user.location
+            }, { headers: { 'x-auth-token': token }});
+            const updatedUser = res.data;
+            setUser(updatedUser);
+            setView('discover');
+            fetchConnections(token, updatedUser);
+        } catch (error) {
+            console.error("Profile update failed", error);
+        }
+    };
+
+    const handleConnect = async (recipientId) => {
+        const token = localStorage.getItem('token');
+        try {
+            await axios.post(`${API_URL}/network/connections/request/${recipientId}`, {}, {
+                headers: { 'x-auth-token': token }
+            });
+            alert('Connection request sent!');
+        } catch (error) {
+            console.error('Failed to send connection request', error);
+            alert(error.response?.data?.msg || 'Could not send request.');
+        }
+    };
+    
+    const handleRespondToRequest = async (requestId, response) => {
+        const token = localStorage.getItem('token');
+        try {
+            await axios.put(`${API_URL}/network/connections/respond/${requestId}`, 
+                { status: response },
+                { headers: { 'x-auth-token': token } }
+            );
+            fetchConnections(token, user);
+        } catch (error) {
+            console.error('Failed to respond to request', error);
+            alert('Could not respond to request.');
+        }
+    };
+
+    const handleSelectChat = async (partner) => {
+        setActiveChat(partner);
+        setView('chat');
+        const token = localStorage.getItem('token');
+        try {
+            const res = await axios.get(`${API_URL}/network/messages/${partner._id}`, {
+                headers: { 'x-auth-token': token }
+            });
+            setMessages(res.data);
+        } catch (error) {
+            console.error("Failed to fetch messages", error);
+        }
+    };
+
     const handleSendMessage = (e) => {
         e.preventDefault();
-       
-        if (message.trim() && socket && isConnected) {
-            socket.emit('send_message', { message: message.trim() });
-            setMessage('');
-           
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-            socket.emit('stop_typing');
+        if (newMessage.trim() && socket && activeChat) {
+            socket.emit('send_private_message', {
+                recipientId: activeChat._id,
+                content: newMessage,
+            });
+            // FIX: The optimistic UI update that caused the duplicate has been removed.
+            setNewMessage('');
         }
     };
 
+    // --- Render Logic ---
 
-    // Handle typing indicator
-    const handleTyping = (e) => {
-        setMessage(e.target.value);
-       
-        if (!socket || !isConnected) return;
-
-
-        socket.emit('typing');
-
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-
-        typingTimeoutRef.current = setTimeout(() => {
-            socket.emit('stop_typing');
-        }, 2000);
-    };
-
-
-    // Format timestamp
-    const formatTime = (timestamp) => {
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-screen flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h1 className="text-3xl font-bold text-gray-900">WattTogether Network</h1>
-               
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`w-3 h-3 rounded-full ${
-                            isConnected
-                                ? 'bg-green-500 shadow-lg shadow-green-500/50 animate-pulse'
-                                : 'bg-red-500'
-                        }`}
-                    ></span>
-                    <span className={`text-sm font-medium ${
-                        isConnected ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                        {isConnected ? 'Connected' : 'Disconnected'}
-                    </span>
-                </div>
-            </div>
-
-
-            {/* Chat Container */}
-            <div className="flex-1 flex flex-col bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                {/* Messages Container */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
-                    {messages.length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="text-center">
-                                <svg
-                                    className="mx-auto h-12 w-12 text-gray-400 mb-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                    />
-                                </svg>
-                                <p className="text-gray-500 text-lg">No messages yet</p>
-                                <p className="text-gray-400 text-sm mt-2">Start the conversation!</p>
+    const renderContent = () => {
+        switch (view) {
+            case 'setup':
+                return (
+                    <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-lg shadow-xl">
+                        <h2 className="text-2xl font-bold text-center mb-6">Complete Your Profile</h2>
+                        <form onSubmit={handleProfileUpdate}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Name</label>
+                                <input type="text" value={user.name || ''} onChange={e => setUser({...user, name: e.target.value})} className="w-full px-3 py-2 border rounded" />
                             </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Bio</label>
+                                <textarea value={user.bio || ''} onChange={e => setUser({...user, bio: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="Tell us about yourself..."></textarea>
+                            </div>
+                            <div className="mb-6">
+                                <label className="block text-gray-700">Location</label>
+                                <input type="text" value={user.location || ''} onChange={e => setUser({...user, location: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="City, Country" />
+                            </div>
+                            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Save and Continue</button>
+                        </form>
+                    </div>
+                );
+            
+            case 'discover':
+                return (
+                    <div className="max-w-4xl mx-auto p-4">
+                        <div className="text-center p-6 bg-gray-800 text-white rounded-lg mb-8">
+                            <h1 className="text-4xl font-bold">Connect with the Likeminded!</h1>
                         </div>
-                    ) : (
-                        <>
-                            {messages.map((msg, index) => (
-                                <div key={index}>
-                                    {msg.type === 'system' ? (
-                                        <div className="flex justify-center my-4">
-                                            <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium border border-blue-200">
-                                                {msg.message}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-start gap-3 max-w-3xl">
-                                            {/* Avatar */}
-                                            <div className="flex-shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md">
-                                                    {msg.memberName.charAt(0).toUpperCase()}
+                        <div className="flex gap-4 mb-6">
+                            <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search for individuals..." className="flex-grow p-3 border rounded-lg"/>
+                            <button onClick={fetchMembers} className="px-6 py-3 bg-blue-600 text-white rounded-lg">Search</button>
+                            <button onClick={() => setView('chat')} className="px-6 py-3 bg-teal-500 text-white rounded-lg">Your Chats ({connections.length})</button>
+                        </div>
+
+                        {pendingRequests.length > 0 && (
+                            <div className="my-8">
+                                <h2 className="text-2xl font-bold mb-4">Connection Requests ({pendingRequests.length})</h2>
+                                <div className="space-y-4">
+                                    {pendingRequests.map(req => (
+                                        <div key={req._id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-md">
+                                            <div className="flex items-center gap-4">
+                                                <img src={req.requester.profilePicture || `https://ui-avatars.com/api/?name=${req.requester.name}&background=random`} alt={req.requester.name} className="w-16 h-16 rounded-full"/>
+                                                <div>
+                                                    <h3 className="font-bold text-lg">{req.requester.name}</h3>
+                                                    <p className="text-gray-600">Wants to connect with you.</p>
                                                 </div>
                                             </div>
-                                           
-                                            {/* Message Content */}
-                                            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-blue-600 text-sm">
-                                                        {msg.memberName}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        {formatTime(msg.timestamp)}
-                                                    </span>
-                                                </div>
-                                                <p className="text-gray-800 text-sm leading-relaxed break-words">
-                                                    {msg.message}
-                                                </p>
+                                            <div className="flex gap-4">
+                                                <button onClick={() => handleRespondToRequest(req._id, 'accepted')} className="px-5 py-2 bg-green-500 text-white rounded-full hover:bg-green-600">Accept</button>
+                                                <button onClick={() => handleRespondToRequest(req._id, 'declined')} className="px-5 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600">Decline</button>
                                             </div>
                                         </div>
-                                    )}
+                                    ))}
+                                </div>
+                                <hr className="my-8" />
+                            </div>
+                        )}
+                        
+                        <div className="space-y-4">
+                            {members.map(member => (
+                                <div key={member._id} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md">
+                                    <div className="flex items-center gap-4">
+                                        <img src={member.profilePicture || `https://ui-avatars.com/api/?name=${member.name}&background=random`} alt={member.name} className="w-16 h-16 rounded-full"/>
+                                        <div>
+                                            <h3 className="font-bold text-lg">{member.name}</h3>
+                                            <p className="text-gray-600">{member.bio}</p>
+                                            <p className="text-sm text-gray-500">{member.location}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => handleConnect(member._id)} className="px-5 py-2 bg-teal-500 text-white rounded-full">Connect</button>
                                 </div>
                             ))}
-                           
-                            {/* Typing Indicator */}
-                            {typingUsers.size > 0 && (
-                                <div className="flex items-center gap-2 text-sm text-gray-600 italic ml-12">
-                                    <div className="flex space-x-1">
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                    </div>
+                );
+            
+            case 'chat':
+                 return (
+                    <div className="flex h-[calc(100vh-100px)] border rounded-lg bg-white shadow-lg">
+                        <div className="w-1/3 border-r flex flex-col">
+                            <div className="p-4 border-b">
+                                <button onClick={() => setView('discover')} className="text-blue-600 hover:underline">← Back to Discover</button>
+                                <h2 className="font-bold text-lg mt-2">People</h2>
+                            </div>
+                            <div className="overflow-y-auto">
+                                {connections.map(c => {
+                                    const isOnline = onlineUserIds.has(c._id);
+                                    return (
+                                        <div key={c._id} onClick={() => handleSelectChat(c)} className={`flex items-center justify-between gap-3 p-3 cursor-pointer ${activeChat?._id === c._id ? 'bg-blue-100' : 'hover:bg-gray-100'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <img src={c.profilePicture || `https://ui-avatars.com/api/?name=${c.name}&background=random`} alt={c.name} className="w-10 h-10 rounded-full" />
+                                                <span>{c.name}</span>
+                                            </div>
+                                            <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} title={isOnline ? 'Online' : 'Offline'}></div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        
+                        <div className="w-2/3 flex flex-col">
+                            {activeChat ? (
+                                <>
+                                    <div className="p-4 border-b font-bold text-lg">{activeChat.name}</div>
+                                    <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+                                        {messages.map(msg => (
+                                            <div key={msg._id} className={`flex ${msg.sender === user._id ? 'justify-end' : 'justify-start'}`}>
+                                                <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.sender === user._id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                                    {msg.content}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div ref={messagesEndRef} />
                                     </div>
-                                    <span>
-                                        {Array.from(typingUsers).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...
-                                    </span>
-                                </div>
+                                    <form onSubmit={handleSendMessage} className="p-4 border-t flex gap-2 bg-white">
+                                        <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder={`Message ${activeChat.name}...`} className="flex-grow p-2 border rounded-full" />
+                                        <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-full">Send</button>
+                                    </form>
+                                </>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-500">Select a connection to start chatting.</div>
                             )}
-                           
-                            <div ref={messagesEndRef} />
-                        </>
-                    )}
-                </div>
+                        </div>
+                    </div>
+                );
 
+            default:
+                return <div>Loading Network...</div>;
+        }
+    };
 
-                {/* Message Input */}
-                <div className="border-t border-gray-200 bg-gray-50 p-4">
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={handleTyping}
-                            placeholder={isConnected ? "Type your message..." : "Disconnected..."}
-                            disabled={!isConnected}
-                            className={`flex-1 px-4 py-3 rounded-full border ${
-                                isConnected
-                                    ? 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                                    : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                            } outline-none transition-all text-sm`}
-                        />
-                       
-                        <button
-                            type="submit"
-                            disabled={!isConnected || !message.trim()}
-                            className={`px-6 py-3 rounded-full font-medium text-white transition-all duration-200 flex items-center gap-2 ${
-                                !isConnected || !message.trim()
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transform hover:scale-105'
-                            }`}
-                        >
-                            <span>Send</span>
-                            <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                                />
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    );
+    return <div className="p-4">{renderContent()}</div>;
 };
 
-
 export default Network;
-
-
