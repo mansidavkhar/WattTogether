@@ -1,21 +1,30 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
 const { initializeKeys } = require('./controllers/memberController');
 const fs = require('fs');
 const path = require('path');
 const jose = require('node-jose');
+const { initializeSocket } = require('./socket/socketHandler'); // Import the new socket handler
 require('dotenv').config();
 
 // Initialize Express App
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Create HTTP server from the Express app
+const server = http.createServer(app);
+
+// Initialize Socket.IO by passing the server instance to our handler
+initializeSocket(server);
+console.log('Socket.IO initialized and listening for connections.');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize Keys
+// Initialize Keys for JWT
 initializeKeys();
 
 // Database Connection
@@ -39,7 +48,7 @@ app.use('/api/members', require('./routes/memberRoutes'));
 app.use('/api/campaigns', require('./routes/campaignRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 
-// JWKS endpoint directly in index.js
+// JWKS endpoint to serve public keys
 app.get('/.well-known/jwks.json', async (req, res) => {
     try {
         const KEYS_FILE = path.join(__dirname, 'config/keys.json');
@@ -51,7 +60,7 @@ app.get('/.well-known/jwks.json', async (req, res) => {
         const keysData = fs.readFileSync(KEYS_FILE, 'utf8');
         const keyStore = await jose.JWK.asKeyStore(keysData);
         
-        // Return only public keys
+        // Return only public keys in JWKS format
         res.json(keyStore.toJSON());
     } catch (error) {
         console.error('Error loading JWKS:', error);
@@ -64,7 +73,7 @@ app.get('/', (req, res) => {
     res.send('WattTogether API is running!');
 });
 
-// Start Server
-app.listen(PORT, () => {
+// Start the server
+server.listen(PORT, () => {
     console.log(`Server is running on port: ${PORT}`);
 });
