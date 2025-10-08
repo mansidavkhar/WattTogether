@@ -10,6 +10,22 @@ const ProjectDescription = () => {
     return <div className="p-8 text-center">No project data available.</div>;
   }
 
+  // --- IMAGE URL FIX ---
+  const BACKEND_URL = 'http://localhost:5000';
+
+  const rawImagePath =
+    project.coverImage ||
+    project.cover_image ||
+    project.coverImageUrl ||
+    project.imageUrl ||
+    project.image ||
+    (project.images && project.images.length > 0 && project.images[0]);
+
+  const coverImage = rawImagePath
+    ? `${BACKEND_URL}${rawImagePath}`
+    : 'https://placehold.co/1200x800/201E43/FFFFFF?text=No+Image';
+  // --- END IMAGE URL FIX ---
+
   // Calculate days left for funding deadline safely
   const now = new Date();
   let daysLeft = 'N/A';
@@ -25,10 +41,6 @@ const ProjectDescription = () => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString();
   };
-
-  // Determine cover image URL safely, fallback to default image if none/invalid
-  const coverImage =
-    project.coverImageUrl || project.cover_image || '/default-image.jpg';
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -48,9 +60,10 @@ const ProjectDescription = () => {
               alt={project.title || project.project_name || 'Project'}
               onError={(e) => {
                 e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/default-image.jpg';
+                e.target.src = 'https://placehold.co/1200x800/201E43/FFFFFF?text=Invalid+Image';
               }}
-              className="w-full my-4 rounded-md object-cover"
+              // Added h-96 for a consistent, larger hero image size
+              className="w-full h-100 my-4 rounded-md object-cover object-center"
             />
 
             <h2 className="font-black font-[inter] text-2xl py-4">Project Overview</h2>
@@ -96,3 +109,4 @@ const ProjectDescription = () => {
 };
 
 export default ProjectDescription;
+

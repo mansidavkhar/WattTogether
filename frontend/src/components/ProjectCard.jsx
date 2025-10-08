@@ -4,16 +4,32 @@ import { useNavigate } from 'react-router-dom';
 export default function ProjectCard({ project }) {
   const navigate = useNavigate();
 
+  // FOR DEBUGGING: This will log the project data to your browser's console.
+  console.log('Project Data Received:', project);
+
   const onViewClick = (e, projectData) => {
     navigate('/member/projectdescription', { state: { project: projectData } });
   };
 
-  // Try all field names for cross-compatibility:
-  const imageUrl =
+  // --- IMAGE URL FIX ---
+  // If your backend server is running on a different address, change this URL.
+  const BACKEND_URL = 'http://localhost:5000';
+
+  // Try all field names for cross-compatibility, now including `coverImage`.
+  const rawImagePath =
+    project.coverImage || // Added this based on your console log
     project.cover_image ||
     project.coverImageUrl ||
-    (project.images && project.images[0]) ||  // fallback if your model ever changes
-    '/default-image.jpg';
+    project.imageUrl ||
+    project.image ||
+    (project.images && project.images.length > 0 && project.images[0]);
+
+  // Prepend the backend URL to the relative image path.
+  // If no image path is found, use a placeholder.
+  const imageUrl = rawImagePath
+    ? `${BACKEND_URL}${rawImagePath}`
+    : 'https://placehold.co/600x400/201E43/FFFFFF?text=No+Image';
+  // --- END IMAGE URL FIX ---
 
   // Use all possible title/name fields for robust display
   const projectTitle = project.title || project.project_name || 'Project';
@@ -33,14 +49,18 @@ export default function ProjectCard({ project }) {
   }
 
   return (
-    <div className="w-lg flex bg-white rounded-2xl shadow-lg overflow-hidden border">
+    // Added h-56 to ensure all cards have a consistent height
+    <div className="w-lg flex h-75 bg-white rounded-2xl shadow-lg overflow-hidden border">
       {/* Left side image */}
       <div className="w-1/2">
         <img
           src={imageUrl}
           alt={projectTitle}
-          className="w-full h-full object-cover"
-          onError={e => { e.target.onerror = null; e.target.src='/default-image.jpg'; }}
+          className="w-full h-full object-cover object-center" // Added object-center
+          onError={e => {
+            e.target.onerror = null;
+            e.target.src = 'https://placehold.co/600x400/201E43/FFFFFF?text=Invalid+Image';
+          }}
         />
       </div>
 
@@ -76,3 +96,4 @@ export default function ProjectCard({ project }) {
     </div>
   );
 }
+
