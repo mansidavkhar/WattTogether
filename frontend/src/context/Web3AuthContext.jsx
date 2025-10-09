@@ -213,7 +213,7 @@ export const Web3AuthProvider = ({ children }) => {
                 return;
             }
 
-            const apiBaseUrl = "http://localhost:5000"; // Direct URL since your backend is on 5000
+            const apiBaseUrl = "https://watttogether-backend.onrender.com"; // Direct URL since your backend is on 5000
             const response = await fetch(`${apiBaseUrl}/api/members/save-wallet`, {
                 method: 'POST',
                 headers: {

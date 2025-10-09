@@ -8,7 +8,7 @@ export default function ProjectCard({ project }) {
     navigate(`/member/project/${project._id}`, { state: { project } });
   };
 
-  const BACKEND_URL = 'http://localhost:5000';
+  const BACKEND_URL = 'https://watttogether-backend.onrender.com';
   const rawImagePath = project.coverImage || project.coverImageUrl || project.cover_image;
   const imageUrl = rawImagePath
     ? `${BACKEND_URL}${rawImagePath}`

@@ -20,7 +20,7 @@ const DonationModal = ({ campaign, onClose }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/campaigns/dev-fund', {
+            const response = await fetch('https://watttogether-backend.onrender.com/campaigns/dev-fund', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

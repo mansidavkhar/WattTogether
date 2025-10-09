@@ -188,7 +188,7 @@ const CampaignDescription = () => {
     }
 
     // --- Data processing ---
-    const BACKEND_URL = 'http://localhost:5000';
+    const BACKEND_URL = 'https://watttogether-backend.onrender.com/';
     const coverImage = campaign.coverImageUrl || campaign.cover_image ? `${BACKEND_URL}${campaign.coverImageUrl || campaign.cover_image}` : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
     
     const now = new Date();

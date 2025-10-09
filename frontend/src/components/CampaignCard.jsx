@@ -8,7 +8,7 @@ export default function CampaignCard({ campaign }) {
     navigate(`/member/campaign/${campaign._id}`, { state: { campaign } });
   };
 
-  const BACKEND_URL = 'http://localhost:5000';
+  const BACKEND_URL = 'https://watttogether-backend.onrender.com';
   const rawImagePath = campaign.coverImage || campaign.coverImageUrl || campaign.cover_image;
   const imageUrl = rawImagePath
     ? `${BACKEND_URL}${rawImagePath}`
