@@ -12,7 +12,7 @@ const ViewMyCampaigns = () => {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?mine=true`, {
+    fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/api/campaigns?mine=true`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${t}`,

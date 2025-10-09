@@ -24,7 +24,7 @@ const StartACampaign = () => {
 
         {/* Start Campaign Button */}
         <div className="text-center">
-        <Link to="/member/newcampaigndetails">
+        <Link to="api/member/newcampaigndetails">
           <button
             onClick={handleStartCampaign}
             className="bg-[#508C9B] hover:bg-[#457a87] text-white font-semibold py-3 px-8 rounded-md transition-colors duration-200"

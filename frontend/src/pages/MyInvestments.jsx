@@ -18,7 +18,7 @@ export default function MyInvestment() {
     }
 
     const fetchOne = async (id) => {
-      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/api/campaigns/${id}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${t}`,

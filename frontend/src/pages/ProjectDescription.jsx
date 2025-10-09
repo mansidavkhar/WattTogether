@@ -126,7 +126,7 @@ const ProjectDescription = () => {
         if (!project) {
             const fetchProject = async () => {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/projects/${id}`);
+                    const response = await fetch(`https://watttogether-backend.onrender.com/api/projects/${id}`);
                     const data = await response.json();
                     if (data.success) {
                         setProject(data.project);
@@ -155,7 +155,7 @@ const ProjectDescription = () => {
         return <div className="p-8 text-center">Project data could not be loaded.</div>;
     }
 
-    const BACKEND_URL = 'https://watttogether-backend.onrender.com';
+    const BACKEND_URL = 'https://watttogether-backend.onrender.com/api';
     const coverImage = project.coverImageUrl || project.cover_image ? `${BACKEND_URL}${project.coverImageUrl || project.cover_image}` : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
     
     // FIX: Handle both original and mapped property names

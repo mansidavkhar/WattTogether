@@ -20,7 +20,7 @@ const mapCampaignToUI = (c) => ({
 
 // Async thunk to fetch campaigns (public browse)
 export const fetchCampaigns = createAsyncThunk(
-  'campaigns/fetchCampaigns',
+  'api/campaigns/fetchCampaigns',
   async (token, { rejectWithValue }) => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/api/campaigns?status=active`, {

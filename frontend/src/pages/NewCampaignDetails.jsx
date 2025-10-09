@@ -47,7 +47,7 @@ const NewCampaignDetails = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_GATEWAY_URL}/campaigns`,
+        `${import.meta.env.VITE_API_GATEWAY_URL}/api/campaigns`,
         {
           method: 'POST',
           headers: {
