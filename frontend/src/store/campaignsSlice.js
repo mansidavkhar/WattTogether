@@ -23,7 +23,7 @@ export const fetchCampaigns = createAsyncThunk(
   'campaigns/fetchCampaigns',
   async (token, { rejectWithValue }) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?status=active`, {
+      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/api/campaigns?status=active`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
