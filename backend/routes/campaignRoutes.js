@@ -10,6 +10,7 @@ const {
   updateFundingProgress,
   convertToProject,
 } = require('../controllers/campaignController');
+const fundingController = require('../controllers/fundingController');
 
 // Set up multer for cover_image uploads
 const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -23,17 +24,30 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// List and get campaigns (require auth for filtering by member)
-router.get('/', auth, listCampaigns);
+// --- Campaign Lifecycle Routes ---
+
+// List campaigns (publicly accessible, auth is used if present for 'mine' filter)
+// and get a specific campaign
+router.get('/', listCampaigns);
 router.get('/:id', getCampaignById);
 
-// Create a new campaign with file upload
+// Create a new campaign (requires auth and handles file upload)
 router.post('/', auth, upload.single('cover_image'), createCampaign);
 
-// Update funding
+// Update funding progress (internal or webhook, requires auth)
 router.patch('/:id/funding', auth, updateFundingProgress);
 
-// Convert to project
+// Convert a funded campaign to a project (requires auth)
 router.post('/:id/convert', auth, convertToProject);
 
+
+// --- Funding Routes ---
+
+// @route   POST api/campaigns/dev-fund
+// @desc    (DEV ONLY) Fund a campaign using the developer faucet
+// @access  Private (requires user to be logged in)
+router.post('/dev-fund', auth, fundingController.fundWithTestUSDC);
+
+
 module.exports = router;
+

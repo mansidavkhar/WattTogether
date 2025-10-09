@@ -1,4 +1,13 @@
 const Project = require('../models/projectModel');
+const { validationResult } = require('express-validator');
+const ethers = require('ethers');
+const ProjectEscrowArtifact = require('../contracts/artifacts/ProjectEscrow.json');
+require('dotenv').config();
+
+
+// --- Ethers.js Setup ---
+const provider = new ethers.JsonRpcProvider(process.env.POLYGON_AMOY_RPC_URL);
+const wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
 
 // Public: list projects (filter by owner or status)
 exports.listProjects = async (req, res) => {
@@ -60,4 +69,67 @@ exports.addProjectUpdate = async (req, res) => {
     console.error('Add Project Update Error:', err);
     res.status(500).json({ success: false, message: 'Failed to add project update' });
   }
+};
+
+
+
+// Create a new project and deploy its escrow contract
+exports.createProject = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+        title,
+        description,
+        fundingGoalINR,
+        fundingDeadline,
+        fundingType,
+        aboutEntrepreneur
+    } = req.body;
+
+    try {
+        // Step 1: Deploy the Smart Contract
+        console.log("Deploying contract, please wait...");
+        const ProjectEscrowFactory = new ethers.ContractFactory(ProjectEscrowArtifact.abi, ProjectEscrowArtifact.bytecode, wallet);
+
+        // Convert funding goal to have 6 decimals (standard for USDC)
+        const fundingGoalUSDC = ethers.parseUnits(fundingGoalINR.toString(), 6); 
+        
+        const deadlineDate = new Date(fundingDeadline);
+        const now = new Date();
+        const durationInDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+
+        const contract = await ProjectEscrowFactory.deploy(
+            req.member.id, // Creator's address (using member ID for now)
+            process.env.USDC_AMOY_ADDRESS,
+            fundingGoalUSDC,
+            durationInDays
+        );
+
+        await contract.waitForDeployment();
+        const contractAddress = await contract.getAddress();
+        console.log(`✅ Contract deployed successfully at: ${contractAddress}`);
+
+        // Step 2: Save Project to Database
+        const newProject = new Project({
+            title,
+            description,
+            fundingGoalINR,
+            fundingDeadline,
+            fundingType,
+            aboutEntrepreneur,
+            owner: req.member.id,
+            coverImage: req.file ? req.file.path.replace(/\\/g, "/") : null, // Handle file upload
+            escrowContractAddress: contractAddress // Save the contract address
+        });
+
+        const project = await newProject.save();
+        res.status(201).json(project);
+
+    } catch (err) {
+        console.error("Error in createProject:", err);
+        res.status(500).send('Server Error');
+    }
 };

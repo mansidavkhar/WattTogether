@@ -6,7 +6,7 @@ import {
   selectCampaignsStatus,
   selectCampaignsError,
 } from '../store/campaignsSlice';
-import ProjectCard from '../components/ProjectCard';
+import CampaignCard from '../components/CampaignCard';
 
 export default function BrowseCampaigns() {
   const dispatch = useDispatch();
@@ -33,7 +33,7 @@ export default function BrowseCampaigns() {
       {status === 'succeeded' && (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-10 place-items-center">
           {campaigns.map((campaign, index) => (
-            <ProjectCard key={campaign._id || index} project={campaign} />
+              <CampaignCard key={campaign._id || index} campaign={campaign} />
           ))}
         </div>
       )}

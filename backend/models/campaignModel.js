@@ -41,6 +41,13 @@ const campaignSchema = new mongoose.Schema(
       index: true,
     },
 
+    // --- ADD THIS FIELD ---
+    escrowContractAddress: {
+      type: String,
+      required: true,
+    },
+    // ----------------------
+
     // Optional tags/categories for browse
     tags: [{ type: String, trim: true }],
   },
