@@ -35,6 +35,20 @@ const DonationModal = ({ campaign, onClose }) => {
             const data = await response.json();
 
             if (data.success) {
+                // Record this investment locally so MyInvestments can display it
+                try {
+                    const key = 'my_investments';
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(arr)) {
+                        if (!arr.includes(campaign._id)) {
+                            arr.push(campaign._id);
+                            localStorage.setItem(key, JSON.stringify(arr));
+                        }
+                    } else {
+                        localStorage.setItem(key, JSON.stringify([campaign._id]));
+                    }
+                } catch {}
+
                 setSuccessMessage(data.message);
                 setTimeout(() => {
                     onClose(true); // Close the modal and indicate success

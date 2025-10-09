@@ -116,7 +116,22 @@ exports.createCampaign = async (req, res) => {
         if (!fundingToken) {
             throw new Error('USDC token address not configured. Set USDC_TOKEN_ADDRESS_AMOY or USDC_AMOY_ADDRESS in .env');
         }
-        const goalInSmallestUnit = ethers.parseUnits((amount || '0').toString(), 6);
+        // Use the token's actual decimals to compute the goal amount in smallest units
+        let tokenDecimals = 6;
+        try {
+            const erc20 = new ethers.Contract(
+                fundingToken,
+                ["function decimals() view returns (uint8)"],
+                provider
+            );
+            const d = await erc20.decimals();
+            tokenDecimals = Number(d);
+            if (!Number.isFinite(tokenDecimals)) tokenDecimals = 6;
+            console.log(`    Funding token decimals: ${tokenDecimals}`);
+        } catch (decErr) {
+            console.warn('     ⚠️ Could not fetch token decimals; defaulting to 6:', decErr?.message || decErr);
+        }
+        const goalInSmallestUnit = ethers.parseUnits((amount || '0').toString(), tokenDecimals);
         const deadlineDate = new Date(funding_deadline);
         const durationInDays = Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
         

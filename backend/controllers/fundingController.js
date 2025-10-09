@@ -54,6 +54,13 @@ exports.fundWithTestUSDC = async (req, res) => {
         ];
         const usdcContract = new ethers.Contract(usdcContractAddress, usdcABI, deployerWallet);
 
+        // Determine token decimals dynamically (default to 6 if not implemented)
+        let usdcDecimals = 6;
+        try {
+            usdcDecimals = Number(await usdcContract.decimals());
+            if (!Number.isFinite(usdcDecimals)) usdcDecimals = 6;
+        } catch {}
+
         // Validate the escrow's configured token matches the configured USDC env var
         const onchainToken = await escrowContract.fundingTokenAddress();
         if (onchainToken.toLowerCase() !== usdcContractAddress.toLowerCase()) {
@@ -63,12 +70,35 @@ exports.fundWithTestUSDC = async (req, res) => {
             });
         }
 
-        // Determine token decimals dynamically (default to 6 if not implemented)
-        let usdcDecimals = 6;
+        // Preflight state checks to avoid on-chain reverts
         try {
-            usdcDecimals = Number(await usdcContract.decimals());
-            if (!Number.isFinite(usdcDecimals)) usdcDecimals = 6;
-        } catch {}
+            const [state, amountRaised, goal, deadline] = await Promise.all([
+                escrowContract.currentState(),
+                escrowContract.amountRaised(),
+                escrowContract.fundingGoal(),
+                escrowContract.deadline(),
+            ]);
+
+            const nowSec = BigInt(Math.floor(Date.now() / 1000));
+            const raisedHuman = Number(ethers.formatUnits(amountRaised, usdcDecimals));
+            const goalHuman = Number(ethers.formatUnits(goal, usdcDecimals));
+            console.log(`Escrow state=${state}, raised=${raisedHuman}, goal=${goalHuman}, deadlineSec=${deadline}`);
+
+            if (nowSec > deadline) {
+                return res.status(400).json({ success: false, message: `Funding period ended for this campaign. Raised=${raisedHuman}, Goal=${goalHuman}` });
+            }
+            if (amountRaised >= goal) {
+                return res.status(400).json({ success: false, message: `Funding goal already reached for this campaign. Raised=${raisedHuman}, Goal=${goalHuman}` });
+            }
+            // Most state machines start in state 0 (fundraising/active). If not 0, block with a clear message.
+            if (state !== 0n) {
+                return res.status(400).json({ success: false, message: `Campaign is not accepting contributions in current state (${state}). Raised=${raisedHuman}, Goal=${goalHuman}` });
+            }
+        } catch (pfErr) {
+            console.warn('Preflight state checks warning:', pfErr?.message || pfErr);
+        }
+
+        // usdcDecimals already determined above
 
         // Convert amount using actual token decimals
         const amountToDonate = ethers.parseUnits(amount.toString(), usdcDecimals);
@@ -124,6 +154,11 @@ exports.fundWithTestUSDC = async (req, res) => {
 
     } catch (err) {
         console.error("DEV FAUCET Error:", err);
-        res.status(500).json({ success: false, message: 'Failed to fund with test USDC' });
+        // Map common on-chain errors to 400 with readable messages
+        const reason = err?.reason || err?.shortMessage || err?.message;
+        if (reason && /Invalid state for this action|funding period|goal already reached/i.test(reason)) {
+            return res.status(400).json({ success: false, message: reason });
+        }
+        res.status(500).json({ success: false, message: 'Failed to fund with test USDC', error: reason });
     }
 };
