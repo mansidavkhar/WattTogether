@@ -261,7 +261,7 @@ const LoginRegister = () => {
     setIsLoading(true);
     setError("");
 
-    const apiBaseUrl = "http://localhost:5000"; 
+    const apiBaseUrl = "https://watttogether-backend.onrender.com"; 
     const url = state === "Login"
       ? `${apiBaseUrl}/api/members/login`
       : `${apiBaseUrl}/api/members/register`;
