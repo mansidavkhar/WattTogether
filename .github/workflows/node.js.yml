@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Simple Node.js CI
 
 on:
   push:
@@ -7,46 +7,38 @@ on:
     branches: [ "main" ]
 
 jobs:
-  frontend:
+  build-frontend:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - name: Install dependencies (frontend)
-        run: npm ci
+          node-version: 20.x
+      - name: Install dependencies
+        run: npm install
         working-directory: frontend
-      - name: Build (frontend)
+      - name: Build
         run: npm run build --if-present
         working-directory: frontend
-      - name: Test (frontend)
+      - name: Test
         run: npm test
         working-directory: frontend
 
-  backend:
+  build-backend:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - name: Install dependencies (backend)
-        run: npm ci
+          node-version: 20.x
+      - name: Install dependencies
+        run: npm install
         working-directory: backend
-      - name: Build (backend)
+      - name: Build
         run: npm run build --if-present
         working-directory: backend
-      - name: Test (backend)
+      - name: Test
         run: npm test
         working-directory: backend
