@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    register, 
-    login, 
-    saveWalletAddress, 
-    getJWKS, 
-    generateTestToken,
-    getMe // Added controller for fetching user data
+  register, 
+  login, 
+  saveWalletAddress, 
+  getJWKS, 
+  generateTestToken,
+  getMe,
+  getWalletAddress // <-- Added new controller
 } = require('../controllers/memberController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
@@ -17,14 +18,14 @@ router.post('/login', login);
 // --- Protected Routes ---
 router.post('/save-wallet', authMiddleware, saveWalletAddress);
 
-// This new route is required by the Network page to get the logged-in user's profile
+// Get logged-in user's profile
 router.get('/me', authMiddleware, getMe);
 
-// --- Web3Auth Routes ---
-// JWKS endpoint for Web3Auth
-router.get('/jwks.json', getJWKS);
+// --- NEW: Get logged-in user's wallet address ---
+router.get('/get-wallet', authMiddleware, getWalletAddress);
 
-// Test token generation (development only)
+// --- Web3Auth Routes ---
+router.get('/jwks.json', getJWKS);
 router.post('/generate-test-token', generateTestToken);
 
 module.exports = router;

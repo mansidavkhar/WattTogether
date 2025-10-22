@@ -126,6 +126,33 @@ exports.saveWalletAddress = async (req, res) => {
     }
 };
 
+
+
+
+/**
+ * GET /api/members/get-wallet
+ * Returns wallet address for the currently authenticated member
+ */
+exports.getWalletAddress = async (req, res) => {
+  try {
+    // req.member.id should be set by your authMiddleware
+    const member = await Member.findById(req.member.id);
+    if (!member) {
+      return res.status(404).json({ success: false, message: 'Member not found.' });
+    }
+    return res.json({
+      success: true,
+      walletAddress: member.walletAddress || null
+    });
+  } catch (err) {
+    console.error('Error fetching wallet address:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+
+
+
 // --- NEW: JWKS Functions ---
 
 // Initialize RSA keys if they don't exist

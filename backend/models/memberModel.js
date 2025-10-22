@@ -23,19 +23,19 @@ const memberSchema = new mongoose.Schema({
         sparse: true, // Allows multiple documents to have a null value for this field
     },
 
-    // Additional personal information
-    dob: {
-        type: String,
-    },
-    phone: {
-        type: String,
-    },
-    pincode: {
-        type: String,
-    },
-    interest: [{
-        type: String,
-    }],
+    // // Additional personal information
+    // dob: {
+    //     type: String,
+    // },
+    // phone: {
+    //     type: String,
+    // },
+    // pincode: {
+    //     type: String,
+    // },
+    // interest: [{
+    //     type: String,
+    // }],
 
     // Fields for the networking profile feature
     bio: {

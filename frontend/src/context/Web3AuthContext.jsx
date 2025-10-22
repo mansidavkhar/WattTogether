@@ -235,22 +235,31 @@ export const Web3AuthProvider = ({ children }) => {
     };
 
     const disconnectWallet = useCallback(async () => {
-        if (!web3auth) return;
-        
-        setIsConnecting(true);
-        try {
-            await web3auth.logout();
-            setProvider(null);
-            setWalletAddress(null);
-            setError(null);
-            console.log('✅ Wallet disconnected');
-        } catch (err) {
-            console.error("Logout Error:", err);
-            setError("Failed to disconnect wallet.");
-        } finally {
-            setIsConnecting(false);
-        }
-    }, [web3auth]);
+  if (!web3auth) return;
+
+  setIsConnecting(true);
+  try {
+    // Only call logout if the wallet is connected
+    if (web3auth.connected) {
+      await web3auth.logout();
+      console.log('✅ Wallet disconnected');
+    } else {
+      console.log('No wallet session to disconnect, skipping Web3Auth logout.');
+    }
+    setProvider(null);
+    setWalletAddress(null);
+    setError(null);
+    // Clean up tokens as before
+    localStorage.removeItem('id_token');
+  } catch (err) {
+    console.error("Logout Error:", err);
+    setError("Failed to disconnect wallet.");
+  } finally {
+    setIsConnecting(false);
+  }
+}, [web3auth]);
+
+
 
     const value = {
         web3auth,
