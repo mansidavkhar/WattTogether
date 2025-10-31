@@ -1,7 +1,18 @@
-FROM node:20-alpine
-WORKDIR /app
+# Use official Node.js image as base
+FROM node:18-alpine
+
+# Set working directory inside container
+WORKDIR /usr/src/app
+
+# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install --production
+
+# Copy app source code
 COPY . .
-EXPOSE 5000
-CMD ["npm", "start"]
+
+# Expose port (matches app.listen port)
+EXPOSE 8080
+
+# Run the app
+CMD ["node", "index.js"]

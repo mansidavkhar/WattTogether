@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
 
 const Network = () => {
     const [user, setUser] = useState(null);
@@ -37,7 +37,7 @@ const Network = () => {
 
         const fetchUserData = async () => {
             try {
-                const res = await axios.get(`${API_URL}/members/me`, {
+                const res = await axios.get(`${BACKEND_URL}/members/me`, {
                     headers: { 'x-auth-token': token }
                 });
                 const currentUser = res.data;
@@ -62,7 +62,9 @@ const Network = () => {
     useEffect(() => {
         if (user) {
             const token = localStorage.getItem('token');
-            const newSocket = io('http://localhost:5000', {
+            // Remove /api at the end if present (robust for prod/dev)
+            const apiBase = import.meta.env.VITE_API_GATEWAY_URL.replace(/\/api\/?$/, '');
+            const newSocket = io(apiBase, {
                 auth: { token }
             });
 
@@ -104,7 +106,7 @@ const Network = () => {
     const fetchMembers = async () => {
         const token = localStorage.getItem('token');
         try {
-            const res = await axios.get(`${API_URL}/network/members?search=${searchTerm}`, {
+            const res = await axios.get(`${BACKEND_URL}/network/members?search=${searchTerm}`, {
                 headers: { 'x-auth-token': token }
             });
             setMembers(res.data);
@@ -115,7 +117,7 @@ const Network = () => {
     
     const fetchConnections = async (token, currentUser) => {
         try {
-            const res = await axios.get(`${API_URL}/network/connections`, {
+            const res = await axios.get(`${BACKEND_URL}/network/connections`, {
                 headers: { 'x-auth-token': token }
             });
 
@@ -141,7 +143,7 @@ const Network = () => {
         e.preventDefault();
         const token = localStorage.getItem('token');
         try {
-            const res = await axios.put(`${API_URL}/network/profile`, {
+            const res = await axios.put(`${BACKEND_URL}/network/profile`, {
                 name: user.name,
                 bio: user.bio,
                 location: user.location
@@ -158,7 +160,7 @@ const Network = () => {
     const handleConnect = async (recipientId) => {
         const token = localStorage.getItem('token');
         try {
-            await axios.post(`${API_URL}/network/connections/request/${recipientId}`, {}, {
+            await axios.post(`${BACKEND_URL}/network/connections/request/${recipientId}`, {}, {
                 headers: { 'x-auth-token': token }
             });
             alert('Connection request sent!');
@@ -171,7 +173,7 @@ const Network = () => {
     const handleRespondToRequest = async (requestId, response) => {
         const token = localStorage.getItem('token');
         try {
-            await axios.put(`${API_URL}/network/connections/respond/${requestId}`, 
+            await axios.put(`${BACKEND_URL}/network/connections/respond/${requestId}`, 
                 { status: response },
                 { headers: { 'x-auth-token': token } }
             );
@@ -187,7 +189,7 @@ const Network = () => {
         setView('chat');
         const token = localStorage.getItem('token');
         try {
-            const res = await axios.get(`${API_URL}/network/messages/${partner._id}`, {
+            const res = await axios.get(`${BACKEND_URL}/network/messages/${partner._id}`, {
                 headers: { 'x-auth-token': token }
             });
             setMessages(res.data);

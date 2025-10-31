@@ -6,7 +6,7 @@ const StartACampaign = () => {
 
   const handleStartCampaign = () => {
     // Add navigation logic here
-    navigate('/campaign-form'); // Adjust the route as needed
+    navigate('/member/startacampaign'); // Adjust the route as needed
   };
 
   return (

@@ -8,10 +8,10 @@ export default function ProjectCard({ project }) {
     navigate(`/member/project/${project._id}`, { state: { project } });
   };
 
-  const BACKEND_URL = 'http://localhost:5000';
+
   const rawImagePath = project.coverImage || project.coverImageUrl || project.cover_image;
   const imageUrl = rawImagePath
-    ? `${BACKEND_URL}${rawImagePath}`
+    ? `${import.meta.env.VITE_API_GATEWAY_URL}${rawImagePath}`
     : `https://placehold.co/600x400/2d3748/FFFFFF?text=${encodeURIComponent(project.title || 'Project')}`;
 
   const title = project.title || 'Project';

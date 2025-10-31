@@ -7,6 +7,8 @@ const Wallet = () => {
   const [loadingDb, setLoadingDb] = useState(true);
   const [dbError, setDbError] = useState(null);
 
+  const API_URL = import.meta.env.VITE_API_GATEWAY_URL;
+
   const fetchWalletFromBackend = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -16,7 +18,7 @@ const Wallet = () => {
     }
     try {
       setLoadingDb(true);
-      const response = await fetch('http://localhost:5000/api/members/get-wallet', {
+      const response = await fetch(`${API_URL}/members/get-wallet`, {
         headers: {
           'Authorization': `Bearer ${token}`, // or 'x-auth-token' depending on your backend
           'Content-Type': 'application/json',
@@ -51,9 +53,7 @@ const Wallet = () => {
         {(loadingDb || isLoading || isConnecting) && (
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
-            <p className="text-lg">
-              Loading wallet information...
-            </p>
+            <p className="text-lg">Loading wallet information...</p>
           </div>
         )}
 

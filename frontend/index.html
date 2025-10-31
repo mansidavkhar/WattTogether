@@ -5,6 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
+    
+    <!-- Your existing window.process polyfill -->
     <script>
       // ULTIMATE FIX: Run before ANY modules load
       window.global = window.globalThis = window;
@@ -65,9 +67,18 @@
       
       console.log('✅ Process locked and loaded');
     </script>
+
+    <!-- 
+      *** THIS IS THE FIX ***
+      This script MUST be in your index.html file in the <head>
+      to load the Coinbase SDK.
+    -->
+    <script src="https://pay.coinbase.com/buy-sdk.js"></script>
+
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+

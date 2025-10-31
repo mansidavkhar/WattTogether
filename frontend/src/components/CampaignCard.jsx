@@ -8,11 +8,14 @@ export default function CampaignCard({ campaign }) {
     navigate(`/member/campaign/${campaign._id}`, { state: { campaign } });
   };
 
-  const BACKEND_URL = 'http://localhost:5000';
+  const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
   const rawImagePath = campaign.coverImage || campaign.coverImageUrl || campaign.cover_image;
+  const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
+
   const imageUrl = rawImagePath
-    ? `${BACKEND_URL}${rawImagePath}`
+    ? `${baseUrl}${rawImagePath}`
     : `https://placehold.co/600x400/201E43/FFFFFF?text=${encodeURIComponent(campaign.title || 'Campaign')}`;
+
 
   const title = campaign.title || campaign.project_name || 'Campaign';
   const fundType = campaign.fundingType || campaign.fund_type || 'N/A';

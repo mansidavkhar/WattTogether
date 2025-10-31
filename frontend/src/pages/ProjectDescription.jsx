@@ -111,7 +111,6 @@
 // export default ProjectDescription;
 
 
-
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
@@ -122,11 +121,13 @@ const ProjectDescription = () => {
     const [isLoading, setIsLoading] = useState(!location.state?.project);
     const [error, setError] = useState('');
 
+    const API_URL = import.meta.env.VITE_API_GATEWAY_URL;
+
     useEffect(() => {
         if (!project) {
             const fetchProject = async () => {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/projects/${id}`);
+                    const response = await fetch(`${API_URL}/projects/${id}`);
                     const data = await response.json();
                     if (data.success) {
                         setProject(data.project);
@@ -141,8 +142,8 @@ const ProjectDescription = () => {
             };
             fetchProject();
         }
-    }, [id, project]);
-    
+    }, [id, project, API_URL]);
+
     if (isLoading) {
         return <div className="p-8 text-center">Loading project...</div>;
     }
@@ -155,9 +156,12 @@ const ProjectDescription = () => {
         return <div className="p-8 text-center">Project data could not be loaded.</div>;
     }
 
-    const BACKEND_URL = 'http://localhost:5000';
-    const coverImage = project.coverImageUrl || project.cover_image ? `${BACKEND_URL}${project.coverImageUrl || project.cover_image}` : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
-    
+    const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
+
+    const coverImage = project.coverImageUrl || project.cover_image
+        ? `${BACKEND_URL}${project.coverImageUrl || project.cover_image}`
+        : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
+
     // FIX: Handle both original and mapped property names
     const fundingGoal = project.fundingGoalINR || project.amount || 0;
     const amountRaised = project.amountRaisedINR || 0;
@@ -170,15 +174,15 @@ const ProjectDescription = () => {
                     {/* Main Content */}
                     <div className="w-full md:w-2/3">
                         <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">{project.title || project.project_name}</h1>
-                         <div className="relative w-full h-80 sm:h-96 mb-6 rounded-lg overflow-hidden shadow-lg">
-                             <img
+                        <div className="relative w-full h-80 sm:h-96 mb-6 rounded-lg overflow-hidden shadow-lg">
+                            <img
                                 src={coverImage}
                                 alt={project.title}
                                 className="w-full h-full object-cover"
                                 onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/1200x800/201E43/FFFFFF?text=Invalid+Image'; }}
                             />
                         </div>
-                        
+
                         {/* Milestone & Voting Section */}
                         <div className="mb-6">
                             <h2 className="text-2xl font-semibold border-b-2 border-gray-200 pb-2 mb-3">Project Milestones & Governance</h2>
@@ -189,7 +193,7 @@ const ProjectDescription = () => {
                         </div>
 
                         <div className="space-y-6 text-gray-700 leading-relaxed">
-                             <div>
+                            <div>
                                 <h2 className="text-2xl font-semibold border-b-2 border-gray-200 pb-2 mb-3">Project Overview</h2>
                                 <p>{project.description}</p>
                             </div>
@@ -203,18 +207,18 @@ const ProjectDescription = () => {
                     {/* Sidebar */}
                     <div className="w-full md:w-1/3">
                         <div className="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
-                             <div className="bg-green-100 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg text-center">
+                            <div className="bg-green-100 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg text-center">
                                 <p className="font-bold text-lg">Project Fully Funded!</p>
                             </div>
-                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                            <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Funding Type</p>
                                 <p className="font-bold text-lg">{project.fundingType || project.fund_type}</p>
                             </div>
-                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                            <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Project Deadline</p>
                                 <p className="font-bold text-lg">{project.projectDeadline ? new Date(project.projectDeadline).toLocaleDateString() : 'N/A'}</p>
                             </div>
-                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                            <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Total Funding Goal</p>
                                 <p className="font-bold text-lg">₹{fundingGoal.toLocaleString()}</p>
                             </div>
@@ -222,7 +226,7 @@ const ProjectDescription = () => {
                                 <p className="text-gray-600">Total Funding Acquired ({fundingPercent}%)</p>
                                 <p className="font-bold text-lg">₹{amountRaised.toLocaleString()}</p>
                             </div>
-                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                            <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Number of Backers</p>
                                 <p className="font-bold text-lg">{project.backersCount}</p>
                             </div>
@@ -235,5 +239,3 @@ const ProjectDescription = () => {
 };
 
 export default ProjectDescription;
-
-

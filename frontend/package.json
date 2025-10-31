@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coinbase/cbpay-js": "^2.4.0",
+    "@coinbase/onchainkit": "^1.1.2",
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.11",
     "@web3auth/base": "^8.12.4",
