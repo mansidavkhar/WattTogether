@@ -17,9 +17,10 @@ const projectRoutes = require('./routes/projectRoutes');
 const networkRoutes = require('./routes/networkRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const coinbaseRoutes = require('./routes/coinbaseRoutes'); // NEW (see below)
+const faucetRoutes = require('./routes/faucetRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 // HTTP Server for Socket.IO
 const server = http.createServer(app);
@@ -50,6 +51,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/coinbase', coinbaseRoutes); // NEW: Coinbase Onramp API route
+app.use('./api/faucet', faucetRoutes);
 
 // JWKS endpoint
 app.get('/.well-known/jwks.json', async (req, res) => {

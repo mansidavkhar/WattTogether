@@ -24,7 +24,7 @@ exports.generateOnrampSessionToken = async (userId, userData) => {
 
   // Step 2: Sign payload with your Coinbase API secret as JWT signing key
   const sessionToken = jwt.sign(payload, process.env.COINBASE_API_SECRET, {
-    algorithm: 'HS256', // Or per Coinbase doc spec if different
+    algorithm: 'Ed25519', // Or per Coinbase doc spec if different
     issuer: process.env.COINBASE_API_KEY,
   });
 

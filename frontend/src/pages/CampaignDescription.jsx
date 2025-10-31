@@ -229,7 +229,6 @@ const CampaignDescription = () => {
           web3AuthProvider={web3AuthProvider}
           memberWalletAddress={memberWalletAddress}
           escrowAddress={campaign.escrowContractAddress}
-          backendBaseUrl={BACKEND_URL}
         />
       )}
 
