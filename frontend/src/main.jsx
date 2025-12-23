@@ -5,14 +5,14 @@ import './index.css';
 import App from './App.jsx';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { Web3AuthProvider } from './context/Web3AuthContext.jsx';
+import PrivyAuthProvider from './context/PrivyAuthProvider.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <Web3AuthProvider>
-      <App />
-      </Web3AuthProvider>
+      <PrivyAuthProvider>
+        <App />
+      </PrivyAuthProvider>
     </Provider>
   </StrictMode>
 );

@@ -4,19 +4,28 @@ const memberSchema = new mongoose.Schema({
     // Core user identity fields
     name: {
         type: String,
-        required: true,
+        required: false, // Privy may not always provide name initially
     },
     email: {
         type: String,
         required: true,
         unique: true,
     },
-    password: {
-        type: String, // Should be a hashed password
-        required: true,
+    
+    // Privy authentication
+    privyUserId: {
+        type: String,
+        unique: true,
+        sparse: true, // Unique identifier from Privy
     },
     
-    // Web3 integration
+    // Legacy password field (optional for backward compatibility)
+    password: {
+        type: String,
+        required: false,
+    },
+    
+    // Web3 integration (managed by Privy)
     walletAddress: {
         type: String,
         unique: true,
@@ -57,6 +66,25 @@ const memberSchema = new mongoose.Schema({
     profileSetupComplete: {
         type: Boolean,
         default: false,
+    },
+    
+    // KYC fields
+    kycStatus: {
+        type: String,
+        enum: ['none', 'pending', 'verified', 'rejected'],
+        default: 'none'
+    },
+    kycDocuments: [{
+        type: String // URLs to uploaded documents
+    }],
+    kycSubmittedAt: {
+        type: Date
+    },
+    kycVerifiedAt: {
+        type: Date
+    },
+    kycRejectionReason: {
+        type: String
     }
 }, { timestamps: true });
 

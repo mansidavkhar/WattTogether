@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMemberAuth } from '../hooks/useMemberAuth';
 
 const NewCampaignDetails = () => {
-  const navigator = useNavigate();
-  const [isLoading, setIsLoading] = useState(false); // State to track submission status
+  const navigate = useNavigate();
+  const { getAuthHeader } = useMemberAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     projectName: '',
     fundingGoal: '',
@@ -32,7 +34,7 @@ const NewCampaignDetails = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Disable button and show loading state
+    setIsLoading(true);
 
     const formDataToSubmit = new FormData();
     formDataToSubmit.append('project_name', formData.projectName);
@@ -45,13 +47,13 @@ const NewCampaignDetails = () => {
     formDataToSubmit.append('funding_deadline', formData.fundingDeadline);
 
     try {
-      const token = localStorage.getItem('token');
+      const authHeader = await getAuthHeader();
       const response = await fetch(
         `${import.meta.env.VITE_API_GATEWAY_URL}/campaigns`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: authHeader,
           },
           body: formDataToSubmit,
         }
@@ -61,7 +63,7 @@ const NewCampaignDetails = () => {
 
       if (data.success) {
         alert('Campaign submitted successfully!');
-        navigator('/member/viewmycampaigns');
+        navigate('/member/viewmycampaigns');
       } else {
         console.error("Submission failed response:", data);
         alert(`Failed to submit campaign: ${data.message || 'Unknown server error'}`);
@@ -70,7 +72,7 @@ const NewCampaignDetails = () => {
       console.error('Submission catch error:', error);
       alert('Something went wrong. Please check the console and try again.');
     } finally {
-      setIsLoading(false); // Re-enable button
+      setIsLoading(false);
     }
   };
 

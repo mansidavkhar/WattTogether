@@ -1,7 +1,7 @@
 const Project = require('../models/projectModel');
 const { validationResult } = require('express-validator');
 const ethers = require('ethers');
-const ProjectEscrowArtifact = require('../contracts/artifacts/ProjectEscrow.json');
+const ProjectEscrowArtifact = require('../contracts/artifacts/ProjectEscrowV2.json');
 require('dotenv').config();
 
 

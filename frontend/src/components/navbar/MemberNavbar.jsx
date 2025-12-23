@@ -1,24 +1,16 @@
 import logo from '../../assets/wattTogether_logo.png';
 import { Link, useNavigate } from 'react-router-dom';
-import { useWeb3Auth } from '../../context/Web3AuthContext'; // Adjust path as needed
+import { useMemberAuth } from '../../hooks/useMemberAuth';
 
 const MemberNavbar = () => {
   const navigate = useNavigate();
-  const { disconnectWallet } = useWeb3Auth();
+  const { logout } = useMemberAuth();
 
   const handleLogout = async () => {
-    // Clear any stored auth tokens or user data from localStorage or other storage
-    localStorage.removeItem('authToken'); // adjust key as per your app
-    localStorage.removeItem('token');     // JWT
-    localStorage.removeItem('id_token');  // Web3Auth JWT if present
-    localStorage.removeItem('user');      // user info
-
-    // Call Web3Auth wallet/session disconnect to fully reset wallet
-    if (disconnectWallet) {
-      await disconnectWallet(); // Await if your logout is asynchronous
-    }
-
-    // Redirect to login page or public home page after logout
+    // Logout will clear localStorage and Privy session
+    await logout();
+    
+    // Redirect to login page
     navigate('/login');
   };
 

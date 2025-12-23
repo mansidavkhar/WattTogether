@@ -62,7 +62,6 @@ export default defineConfig({
     // Force exclude problematic dependencies
     exclude: [
       'node-stdlib-browser',
-      '@web3auth/auth/node_modules/readable-stream',
     ],
     esbuildOptions: {
       define: {

@@ -1,6 +1,6 @@
 const Campaign = require('../models/campaignModel');
 const ethers = require('ethers');
-const ProjectEscrowArtifact = require('../contracts/artifacts/ProjectEscrow.json');
+const ProjectEscrowArtifact = require('../contracts/artifacts/ProjectEscrowV2.json');
 require('dotenv').config();
 
 // Ethers setup to connect to the Polygon Amoy testnet

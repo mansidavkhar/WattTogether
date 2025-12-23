@@ -2,12 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
-const fs = require('fs');
 const path = require('path');
-const jose = require('node-jose');
+const fs = require('fs');
 require('dotenv').config();
 
-const { initializeKeys } = require('./controllers/memberController');
 const { initializeSocket } = require('./socket/socketHandler');
 
 // Modular routing
@@ -16,8 +14,11 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const networkRoutes = require('./routes/networkRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-const coinbaseRoutes = require('./routes/coinbaseRoutes'); // NEW (see below)
+const coinbaseRoutes = require('./routes/coinbaseRoutes');
 const faucetRoutes = require('./routes/faucetRoutes');
+const kycRoutes = require('./routes/kycRoutes');
+const donationRoutesV2 = require('./routes/donationRoutesV2');
+const milestoneRoutes = require('./routes/milestoneRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,8 +31,15 @@ initializeSocket(server);
 app.use(cors());
 app.use(express.json());
 
-// Init JWT/keys
-initializeKeys();
+// Ensure uploads directories exist
+const uploadDirs = ['uploads', 'uploads/kyc'];
+uploadDirs.forEach(dir => {
+  const dirPath = path.join(__dirname, dir);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    console.log(`Created directory: ${dir}`);
+  }
+});
 
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -50,24 +58,11 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/coinbase', coinbaseRoutes); // NEW: Coinbase Onramp API route
+app.use('/api/coinbase', coinbaseRoutes);
 app.use('./api/faucet', faucetRoutes);
-
-// JWKS endpoint
-app.get('/.well-known/jwks.json', async (req, res) => {
-  try {
-    const KEYS_FILE = path.join(__dirname, 'config/keys.json');
-    if (!fs.existsSync(KEYS_FILE)) {
-      return res.status(500).json({ error: 'Keys file not found' });
-    }
-    const keysData = fs.readFileSync(KEYS_FILE, 'utf8');
-    const keyStore = await jose.JWK.asKeyStore(keysData);
-    res.json(keyStore.toJSON());
-  } catch (error) {
-    console.error('Error loading JWKS:', error);
-    res.status(500).json({ error: 'Failed to load keys' });
-  }
-});
+app.use('/api/kyc', kycRoutes);
+app.use('/api/donations', donationRoutesV2);
+app.use('/api/milestones', milestoneRoutes);
 
 // Root
 app.get('/', (req, res) => {
