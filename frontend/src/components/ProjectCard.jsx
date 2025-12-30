@@ -5,13 +5,20 @@ export default function ProjectCard({ project }) {
   const navigate = useNavigate();
 
   const onViewClick = () => {
-    navigate(`/member/project/${project._id}`, { state: { project } });
+    // Handle both Project and Campaign models
+    const route = project.escrowContractAddress 
+      ? `/member/campaign/${project._id}` 
+      : `/member/project/${project._id}`;
+    navigate(route, { state: { project, campaign: project } });
   };
 
 
+  const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
+  const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
+  
   const rawImagePath = project.coverImage || project.coverImageUrl || project.cover_image;
   const imageUrl = rawImagePath
-    ? `${import.meta.env.VITE_API_GATEWAY_URL}${rawImagePath}`
+    ? `${baseUrl}${rawImagePath}`
     : `https://placehold.co/600x400/2d3748/FFFFFF?text=${encodeURIComponent(project.title || 'Project')}`;
 
   const title = project.title || 'Project';

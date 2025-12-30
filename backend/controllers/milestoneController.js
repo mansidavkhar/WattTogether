@@ -14,8 +14,10 @@ const submitMilestone = async (req, res) => {
   try {
     const { campaignId, amount, description } = req.body;
     const creatorId = req.member._id;
+    const uploadedFiles = req.files || [];
 
     console.log(`\n📋 Milestone submission: ${amount} INR for "${description}"`);
+    console.log(`📎 Uploaded ${uploadedFiles.length} proof documents`);
 
     // Validate
     if (!campaignId || !amount || !description) {
@@ -35,20 +37,27 @@ const submitMilestone = async (req, res) => {
     }
 
     // Check authorization
-    if (campaign.creatorId.toString() !== creatorId.toString()) {
+    if (campaign.owner.toString() !== creatorId.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Only campaign creator can submit milestones'
       });
     }
 
-    // Check campaign status
-    if (campaign.status !== 'Active Project') {
+    // Check campaign status - must be funded
+    if (campaign.status !== 'funded') {
       return res.status(400).json({
         success: false,
-        message: 'Campaign must be in Active Project status'
+        message: 'Campaign must be funded before creating milestones'
       });
     }
+
+    // Prepare proof documents array
+    const proofDocuments = uploadedFiles.map(file => ({
+      filename: file.originalname,
+      path: file.path,
+      uploadedAt: new Date()
+    }));
 
     // Create milestone record
     const milestone = new Milestone({
@@ -57,11 +66,12 @@ const submitMilestone = async (req, res) => {
       amount,
       description,
       status: 'pending',
+      proofDocuments,
       createdAt: new Date()
     });
 
     await milestone.save();
-    console.log(`✅ Milestone created: ${milestone._id}`);
+    console.log(`✅ Milestone created: ${milestone._id} with ${proofDocuments.length} documents`);
 
     // Add to escrow contract
     const provider = new ethers.JsonRpcProvider(POLYGON_AMOY_RPC);
@@ -73,7 +83,9 @@ const submitMilestone = async (req, res) => {
       relayer
     );
 
-    const weiAmount = ethers.parseEther((amount / 85).toString()); // Convert INR to ETH equivalent
+    // Use the same conversion rate as donations: 100,000 INR = 1 ETH
+    const INR_TO_WEI_RATE = 100000;
+    const weiAmount = ethers.parseEther((amount / INR_TO_WEI_RATE).toString());
 
     console.log(`🔗 Adding milestone to escrow contract...`);
     const txResponse = await escrowContract.addMilestone(weiAmount, description, {
@@ -90,6 +102,23 @@ const submitMilestone = async (req, res) => {
     milestone.onChainId = onChainId.toString();
     milestone.txHash = txReceipt.transactionHash;
     await milestone.save();
+
+    // Send email notifications to all donors
+    try {
+      const Donation = require('../models/donationModel');
+      const Member = require('../models/memberModel');
+      const { sendMilestoneNotification } = require('../services/emailService');
+
+      // Get all unique donors for this campaign
+      const donations = await Donation.find({ campaign: campaignId }).populate('member', 'email');
+      const donorEmails = [...new Set(donations.map(d => d.member?.email).filter(Boolean))];
+
+      console.log(`📧 Sending notifications to ${donorEmails.length} donors...`);
+      await sendMilestoneNotification(donorEmails, campaign.title, description, amount);
+    } catch (emailError) {
+      console.warn('⚠️ Email notification failed:', emailError.message);
+      // Don't fail the milestone creation if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -129,14 +158,34 @@ const getCampaignMilestones = async (req, res) => {
     }
 
     const milestones = await Milestone.find({ campaignId })
-      .select('amount description status votes upvotes downvotes votingEndDate onChainId')
+      .select('amount description status votes upvotes downvotes votingEndDate onChainId proofDocuments')
       .sort({ createdAt: -1 });
 
     // Get voting power (only for donors)
-    const userDonations = await require('../models/donationModel').findOne({
+    const Donation = require('../models/donationModel');
+    
+    console.log('🔍 Checking voting power for:', {
       campaignId,
-      donorId: req.member._id
+      memberId: req.member._id,
+      memberEmail: req.member.email
     });
+    
+    const userDonations = await Donation.findOne({
+      campaign: campaignId,
+      member: req.member._id
+    });
+
+    console.log('💰 Donation found:', userDonations ? 'YES' : 'NO');
+    if (userDonations) {
+      console.log('   Donation details:', {
+        amount: userDonations.amount,
+        date: userDonations.date
+      });
+    }
+    
+    // Also check if any donations exist for this campaign
+    const allDonations = await Donation.find({ campaign: campaignId });
+    console.log(`📊 Total donations for campaign: ${allDonations.length}`);
 
     const hasVotingPower = !!userDonations;
 
@@ -182,9 +231,10 @@ const voteOnMilestone = async (req, res) => {
     }
 
     // Check if user has voting power (must be a donor)
-    const donation = await require('../models/donationModel').findOne({
-      campaignId: milestone.campaignId,
-      donorId: voterId
+    const Donation = require('../models/donationModel');
+    const donation = await Donation.findOne({
+      campaign: milestone.campaignId,
+      member: voterId
     });
 
     if (!donation) {
@@ -273,7 +323,7 @@ const releaseMilestoneFunds = async (req, res) => {
 
     // Check if user is campaign creator
     const campaign = await Campaign.findById(milestone.campaignId);
-    if (campaign.creatorId.toString() !== userId.toString()) {
+    if (campaign.owner.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Only campaign creator can release funds'
@@ -298,14 +348,17 @@ const releaseMilestoneFunds = async (req, res) => {
       relayer
     );
 
-    const weiAmount = ethers.parseEther((milestone.amount / 85).toString());
+    // Use the same conversion rate as donations: 100,000 INR = 1 ETH
+    const INR_TO_WEI_RATE = 100000;
+    const weiAmount = ethers.parseEther((milestone.amount / INR_TO_WEI_RATE).toString());
 
     console.log(`💰 Releasing ${milestone.amount} INR (${ethers.formatEther(weiAmount)} ETH) from escrow...`);
+    console.log(`   To beneficiary wallet: ${campaign.beneficiaryAddress}`);
+    console.log(`   Milestone ID: ${milestone.onChainId}`);
     
     const txResponse = await escrowContract.releaseMilestoneFunds(
       milestone.onChainId,
-      weiAmount,
-      { gasLimit: 300000 }
+      weiAmount
     );
 
     const txReceipt = await txResponse.wait();

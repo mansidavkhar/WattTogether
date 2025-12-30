@@ -11,10 +11,7 @@ const { initializeSocket } = require('./socket/socketHandler');
 // Modular routing
 const memberRoutes = require('./routes/memberRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
-const projectRoutes = require('./routes/projectRoutes');
 const networkRoutes = require('./routes/networkRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const coinbaseRoutes = require('./routes/coinbaseRoutes');
 const faucetRoutes = require('./routes/faucetRoutes');
 const kycRoutes = require('./routes/kycRoutes');
 const donationRoutesV2 = require('./routes/donationRoutesV2');
@@ -32,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 // Ensure uploads directories exist
-const uploadDirs = ['uploads', 'uploads/kyc'];
+const uploadDirs = ['uploads', 'uploads/kyc', 'uploads/milestones'];
 uploadDirs.forEach(dir => {
   const dirPath = path.join(__dirname, dir);
   if (!fs.existsSync(dirPath)) {
@@ -55,11 +52,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Modular Routes
 app.use('/api/members', memberRoutes);
 app.use('/api/campaigns', campaignRoutes);
-app.use('/api/projects', projectRoutes);
 app.use('/api/network', networkRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/coinbase', coinbaseRoutes);
-app.use('./api/faucet', faucetRoutes);
+app.use('/api/faucet', faucetRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/donations', donationRoutesV2);
 app.use('/api/milestones', milestoneRoutes);

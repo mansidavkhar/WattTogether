@@ -8,7 +8,6 @@ const {
   listCampaigns,
   getCampaignById,
   updateFundingProgress,
-  convertToProject,
 } = require('../controllers/campaignController');
 const fundingController = require('../controllers/fundingController');
 
@@ -26,9 +25,16 @@ const upload = multer({ storage });
 
 // --- Campaign Lifecycle Routes ---
 
-// List campaigns (publicly accessible, auth is used if present for 'mine' filter)
-// and get a specific campaign
-router.get('/', listCampaigns);
+// Conditional auth middleware - require auth only when mine=true
+const conditionalAuth = (req, res, next) => {
+  if (req.query.mine === 'true') {
+    return auth(req, res, next);
+  }
+  next();
+};
+
+// List campaigns (publicly accessible, auth required when mine=true)
+router.get('/', conditionalAuth, listCampaigns);
 router.get('/:id', getCampaignById);
 
 // Create a new campaign (requires auth and handles file upload)
@@ -36,10 +42,6 @@ router.post('/', auth, upload.single('cover_image'), createCampaign);
 
 // Update funding progress (internal or webhook, requires auth)
 router.patch('/:id/funding', auth, updateFundingProgress);
-
-// Convert a funded campaign to a project (requires auth)
-router.post('/:id/convert', auth, convertToProject);
-
 
 // --- Funding Routes ---
 

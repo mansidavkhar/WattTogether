@@ -48,6 +48,13 @@ const campaignSchema = new mongoose.Schema(
     },
     // ----------------------
 
+    // Beneficiary wallet address (where funds are sent when milestones are released)
+    beneficiaryAddress: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     // Optional tags/categories for browse
     tags: [{ type: String, trim: true }],
   },

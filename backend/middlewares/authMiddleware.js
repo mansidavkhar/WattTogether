@@ -16,9 +16,6 @@ const authMiddleware = async (req, res, next) => {
         // Extract token from Authorization header
         let token = req.header('Authorization');
         
-        console.log('Auth middleware - Request path:', req.path);
-        console.log('Auth middleware - Token present:', !!token);
-        
         if (!token) {
             return res.status(401).json({ 
                 success: false, 
@@ -31,12 +28,8 @@ const authMiddleware = async (req, res, next) => {
             token = token.slice(7);
         }
 
-        console.log('Auth middleware - Verifying token with Privy...');
-
         // Verify token with Privy
         const verifiedClaims = await privyClient.verifyAuthToken(token);
-        
-        console.log('Auth middleware - Token verified, userId:', verifiedClaims.userId);
         
         if (!verifiedClaims || !verifiedClaims.userId) {
             return res.status(401).json({ 
@@ -47,8 +40,6 @@ const authMiddleware = async (req, res, next) => {
 
         // Find member by Privy user ID
         let member = await Member.findOne({ privyUserId: verifiedClaims.userId });
-        
-        console.log('Auth middleware - Member found:', !!member);
         
         if (!member) {
             return res.status(404).json({ 
@@ -87,11 +78,6 @@ const authMiddleware = async (req, res, next) => {
             name: member.name,
             walletAddress: member.walletAddress
         };
-
-        console.log('Auth middleware - Member attached to request:', {
-            email: req.member.email,
-            walletAddress: req.member.walletAddress || 'NOT SET'
-        });
 
         next();
 

@@ -3,7 +3,34 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+// Custom arrow components for better visibility
+const NextArrow = (props) => {
+  const { onClick } = props;
+  return (
+    <div
+      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-[#508C9B] hover:bg-[#3d6f7a] text-white rounded-full p-3 shadow-lg transition-all"
+      onClick={onClick}
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </div>
+  );
+};
 
+const PrevArrow = (props) => {
+  const { onClick } = props;
+  return (
+    <div
+      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-[#508C9B] hover:bg-[#3d6f7a] text-white rounded-full p-3 shadow-lg transition-all"
+      onClick={onClick}
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
+    </div>
+  );
+};
 
 const FeaturedProjectItem = () => {
   const settings = {
@@ -11,32 +38,36 @@ const FeaturedProjectItem = () => {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 1
+    slidesToScroll: 1,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    pauseOnHover: true
   };
+  
   return (
-    <>
-    <Slider {...settings}>
-      {Featured.map((item) => (
-        <div key={item.id} className="bg-[#201E43] text-white">
+    <div className="relative">
+      <Slider {...settings}>
+        {Featured.map((item) => (
+          <div key={item.id} className="bg-[#201E43] text-white rounded-xl overflow-hidden">
+            <div className="flex justify-between items-center gap-4 px-24 py-10">
+              <div className="flex-1 max-w-md">
+                <p className="font-medium text-3xl mb-4 font-[inter]">{item.title}</p>
+                <p className="mb-4 text-gray-200">{item.projectInfo}</p>
+                <button className="bg-[#508C9B] hover:bg-[#3d6f7a] py-2 px-8 rounded-3xl text-lg transition-colors">
+                  View Details
+                </button>
+              </div>
 
-          <div className="flex justify-end"><span className="bg-[#24A232] py-4 px-15 font-bold font-[inter] italic tracking-wider text-lg">IMPACT SCORE: {item.impactScore}</span></div> 
-
-          <div className="flex justify-between px-30 py-5 pb-20">
-          <div>
-            <p className="font-medium text-3xl py-7 font-[inter]">{item.title}</p>
-            <p>{item.projectInfo}</p>
-            <button className="bg-[#508C9B] my-5 py-1 px-8 rounded-3xl text-lg">View Details</button>
+              <div className="flex-shrink-0">
+                <img src={item.image} className="h-52 w-80 object-cover rounded-lg" alt="project-image" />
+              </div>
+            </div>
           </div>
-
-          <div>
-            <img src={item.image} className=" h-48 w-96 object-scale-down rounded-t-2xl" alt="project-image" />
-          </div>
-          </div>
-          
-        </div>
-      ))}
+        ))}
       </Slider>
-    </>
+    </div>
   );
 };
 

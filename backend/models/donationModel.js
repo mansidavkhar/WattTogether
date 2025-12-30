@@ -4,12 +4,12 @@ const Schema = mongoose.Schema;
 const DonationSchema = new Schema({
   member: {
     type: Schema.Types.ObjectId,
-    ref: 'user', // Refers to your User model
+    ref: 'Member', // Refers to your User model
     required: true,
   },
   campaign: {
     type: Schema.Types.ObjectId,
-    ref: 'campaign', // Refers to your Campaign model
+    ref: 'Campaign', // Refers to your Campaign model
     required: true,
   },
   amount: {
@@ -34,4 +34,4 @@ const DonationSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model('donation', DonationSchema);
+module.exports = mongoose.model('Donation', DonationSchema);

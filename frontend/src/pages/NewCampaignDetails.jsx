@@ -14,6 +14,7 @@ const NewCampaignDetails = () => {
     fundingDeadline: '',
     projectDeadline: '',
     coverPhoto: null,
+    beneficiaryAddress: '',
   });
 
   const handleInputChange = (e) => {
@@ -45,6 +46,7 @@ const NewCampaignDetails = () => {
     formDataToSubmit.append('amount', formData.fundingGoal);
     formDataToSubmit.append('project_deadline', formData.projectDeadline);
     formDataToSubmit.append('funding_deadline', formData.fundingDeadline);
+    formDataToSubmit.append('beneficiary_address', formData.beneficiaryAddress);
 
     try {
       const authHeader = await getAuthHeader();
@@ -107,11 +109,34 @@ const NewCampaignDetails = () => {
             required
             disabled={isLoading}
           />
+
+        {/* Beneficiary Wallet Address */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Beneficiary Wallet Address
+            <span className="text-xs text-gray-500 ml-2">(Where funds will be sent)</span>
+          </label>
+          <input
+            type="text"
+            name="beneficiaryAddress"
+            value={formData.beneficiaryAddress}
+            onChange={handleInputChange}
+            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+            placeholder="0x... (MetaMask, Ledger, or Exchange wallet address)"
+            required
+            disabled={isLoading}
+            pattern="^0x[a-fA-F0-9]{40}$"
+            title="Must be a valid Ethereum address starting with 0x"
+          />
+          <p className="text-xs text-gray-500">
+            💡 Tip: This is the wallet that will receive funds when milestones are released. It can be different from your Privy wallet.
+          </p>
+        </div>
         </div>
 
         {/* Project Description */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Campaign Description</label>
+          <label className="block text-sm font-medium text-gray-700">Campaign Description (Tip: Use raw markdown syntax)</label>
           <textarea
             name="projectDescription"
             value={formData.projectDescription}

@@ -50,6 +50,16 @@ const milestoneSchema = new mongoose.Schema({
   releaseTxHash: String,
   votingEndDate: Date,
   releasedAt: Date,
+  proofDocuments: [
+    {
+      filename: String,
+      path: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
   createdAt: {
     type: Date,
     default: Date.now

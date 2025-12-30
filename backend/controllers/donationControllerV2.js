@@ -62,6 +62,18 @@ const submitDonation = async (req, res) => {
 
     console.log(`   Campaign: ${campaign.title} (status: ${campaign.status})`);
 
+    // GOVERNANCE CONSTRAINT: Prevent creators from donating to their own campaigns
+    // This ensures 100% of voting power remains with independent backers
+    const campaignOwner = await Member.findById(campaign.owner);
+    if (campaignOwner && campaignOwner.walletAddress && 
+        donorWallet.toLowerCase() === campaignOwner.walletAddress.toLowerCase()) {
+      console.log(`❌ Creator attempted to donate to own campaign`);
+      return res.status(403).json({
+        success: false,
+        message: 'Campaign creators cannot donate to their own campaigns to prevent governance manipulation.'
+      });
+    }
+
     // Check if campaign is still active and accepting donations
     if (campaign.status !== 'active') {
       return res.status(400).json({
@@ -246,7 +258,21 @@ const submitDonation = async (req, res) => {
       }
     }
 
-    // Step 2: Save donation record in database
+    // Step 2: Check if this is a first-time backer BEFORE saving the donation
+    console.log(`🔎 Checking for existing donations from this donor...`);
+    console.log(`   Donor ID: ${donorId}`);
+    console.log(`   Campaign ID: ${campaignId}`);
+    
+    const existingDonation = await Donation.findOne({ 
+      member: donorId, 
+      campaign: campaignId
+    });
+    
+    const isFirstTimeBacker = !existingDonation;
+    console.log(`   Existing donation found: ${!!existingDonation}`);
+    console.log(`   Is first-time backer: ${isFirstTimeBacker}`);
+
+    // Now save the donation record in database
     const donation = new Donation({
       member: donorId,              // Model expects 'member' not 'donorId'
       campaign: campaignId,          // Model expects 'campaign' not 'campaignId'
@@ -259,9 +285,21 @@ const submitDonation = async (req, res) => {
     await donation.save();
     console.log(`💾 Donation record saved: ${donation._id}`);
 
-    // Step 3: Update campaign with new donation amount
+    // Step 3: Update campaign with new donation amount and increment backers count
+    console.log(`🔍 Before update - Campaign backersCount: ${campaign.backersCount}`);
+    
     const amountRaisedBefore = campaign.amountRaisedINR || 0;
     campaign.amountRaisedINR = (amountRaisedBefore || 0) + inrAmount;
+    
+    // Increment backers count only for first-time backers
+    if (isFirstTimeBacker) {
+      // First time backing this campaign
+      const oldCount = campaign.backersCount || 0;
+      campaign.backersCount = oldCount + 1;
+      console.log(`👥 New backer! Updated from ${oldCount} to ${campaign.backersCount}`);
+    } else {
+      console.log(`👤 Repeat backer - count unchanged at ${campaign.backersCount || 0}`);
+    }
 
     // Check if funding goal reached
     const fundingGoal = campaign.fundingGoalINR || campaign.amount || 0;
@@ -272,7 +310,8 @@ const submitDonation = async (req, res) => {
     }
 
     await campaign.save();
-    console.log(`📊 Campaign updated: ${campaign.amountRaisedINR}/${fundingGoal} INR`);
+    console.log(`📊 Campaign updated: ${campaign.amountRaisedINR}/${fundingGoal} INR, Backers: ${campaign.backersCount}`);
+    console.log(`✅ Campaign saved successfully with backersCount: ${campaign.backersCount}`);
 
     // Step 4: Update donor's contribution tracking
     const member = await Member.findById(donorId);
@@ -473,9 +512,216 @@ const getEscrowStatus = async (req, res) => {
   }
 };
 
+/**
+ * Get all campaigns that the authenticated user has invested in
+ */
+const getMyInvestments = async (req, res) => {
+  try {
+    const donorId = req.member?._id || req.member?.id;
+    if (!donorId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    // Find all donations by this user
+    const donations = await Donation.find({ member: donorId })
+      .populate({
+        path: 'campaign',
+        populate: { path: 'owner', select: 'name email walletAddress' }
+      })
+      .sort({ createdAt: -1 });
+
+    // Get milestone status for campaigns
+    const Milestone = require('../models/milestoneModel');
+
+    // Group donations by campaign and calculate totals
+    const campaignMap = new Map();
+    donations.forEach(donation => {
+      if (!donation.campaign) return;
+      
+      const campaignId = donation.campaign._id.toString();
+      if (!campaignMap.has(campaignId)) {
+        campaignMap.set(campaignId, {
+          campaign: donation.campaign,
+          donations: [],
+          totalDonated: 0,
+          donationCount: 0
+        });
+      }
+      
+      const entry = campaignMap.get(campaignId);
+      entry.donations.push({
+        _id: donation._id,
+        amount: donation.amount,
+        currency: donation.currency,
+        txHash: donation.txHash,
+        date: donation.date
+      });
+      entry.totalDonated += donation.amount || 0;
+      entry.donationCount++;
+    });
+
+    // Convert to array and add milestone voting status
+    const campaignIds = Array.from(campaignMap.keys());
+    const pendingMilestones = await Milestone.find({
+      campaignId: { $in: campaignIds },
+      status: 'pending'
+    }).select('campaignId votes');
+
+    const campaignsWithDonations = Array.from(campaignMap.values()).map(entry => {
+      const campaignId = entry.campaign._id.toString();
+      
+      // Check if user has already voted on pending milestones
+      const pendingForCampaign = pendingMilestones.filter(m => 
+        m.campaignId.toString() === campaignId
+      );
+
+      let hasPendingMilestones = false;
+      let needsVote = false;
+
+      if (pendingForCampaign.length > 0) {
+        hasPendingMilestones = true;
+        // Check if user has voted on any pending milestone
+        needsVote = pendingForCampaign.some(milestone => {
+          const hasVoted = milestone.votes?.some(vote => 
+            vote.voter.toString() === donorId.toString()
+          );
+          return !hasVoted;
+        });
+      }
+
+      return {
+        ...entry.campaign.toObject(),
+        myDonations: entry.donations,
+        myTotalDonated: entry.totalDonated,
+        myDonationCount: entry.donationCount,
+        hasPendingMilestones,
+        needsVote
+      };
+    });
+
+    res.json({
+      success: true,
+      campaigns: campaignsWithDonations,
+      totalInvestments: campaignsWithDonations.length,
+      totalDonated: campaignsWithDonations.reduce((sum, c) => sum + c.myTotalDonated, 0)
+    });
+  } catch (error) {
+    console.error('Error fetching user investments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch investments'
+    });
+  }
+};
+
+/**
+ * Reconcile campaign backer count based on actual donations in database
+ * This fixes campaigns where donations exist but backersCount wasn't updated
+ */
+const reconcileBackersCount = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: 'Campaign not found'
+      });
+    }
+
+    // Store previous value before updating
+    const previousBackersCount = campaign.backersCount;
+
+    // Count unique backers for this campaign
+    const uniqueBackers = await Donation.distinct('member', { campaign: campaignId });
+    const correctBackersCount = uniqueBackers.length;
+
+    console.log(`🔍 Reconciling campaign ${campaignId}:`);
+    console.log(`   Previous backersCount: ${previousBackersCount}`);
+    console.log(`   Actual unique backers: ${correctBackersCount}`);
+
+    // Update campaign with correct backer count
+    campaign.backersCount = correctBackersCount;
+    await campaign.save();
+
+    console.log(`✅ Campaign backersCount updated to ${correctBackersCount}`);
+
+    res.json({
+      success: true,
+      message: 'Backer count reconciled',
+      data: {
+        campaignId: campaign._id,
+        title: campaign.title,
+        previousBackersCount,
+        newBackersCount: correctBackersCount,
+        amountRaisedINR: campaign.amountRaisedINR
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error reconciling backer count:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reconcile backer count',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Reconcile all campaigns' backer counts
+ * Admin endpoint to bulk fix all campaigns
+ */
+const reconcileAllBackersCounts = async (req, res) => {
+  try {
+    const campaigns = await Campaign.find({});
+    let reconciled = 0;
+    const results = [];
+
+    for (const campaign of campaigns) {
+      const uniqueBackers = await Donation.distinct('member', { campaign: campaign._id });
+      const correctBackersCount = uniqueBackers.length;
+
+      if (campaign.backersCount !== correctBackersCount) {
+        console.log(`🔧 Fixing campaign ${campaign._id}: ${campaign.backersCount} → ${correctBackersCount}`);
+        const previousCount = campaign.backersCount;
+        campaign.backersCount = correctBackersCount;
+        await campaign.save();
+        reconciled++;
+        results.push({
+          campaignId: campaign._id,
+          title: campaign.title,
+          previousCount,
+          newCount: correctBackersCount
+        });
+      }
+    }
+
+    console.log(`✅ Reconciliation complete: ${reconciled} campaigns fixed`);
+
+    res.json({
+      success: true,
+      message: `Reconciliation complete. ${reconciled} campaigns fixed.`,
+      totalCampaigns: campaigns.length,
+      reconciledCount: reconciled,
+      details: results
+    });
+  } catch (error) {
+    console.error('❌ Error bulk reconciling backer counts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to bulk reconcile backer counts',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   submitDonation,
   getDonationHistory,
   getCampaignDonations,
-  getEscrowStatus
+  getEscrowStatus,
+  getMyInvestments,
+  reconcileBackersCount,
+  reconcileAllBackersCounts
 };

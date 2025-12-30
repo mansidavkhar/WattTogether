@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import DonationModal from '../components/DonationModalV2.jsx';
+import MilestonesPanel from '../components/MilestonesPanel.jsx';
 import { useMemberAuth } from '../hooks/useMemberAuth.js';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 
 const CampaignDescription = () => {
   const { id } = useParams();
@@ -43,7 +46,7 @@ const CampaignDescription = () => {
       };
       fetchCampaign();
     }
-  }, [id, campaign, BACKEND_URL]);
+  }, [id, BACKEND_URL]); // Removed 'campaign' to prevent infinite loop
 
   const handleCloseModal = (didFund) => {
     setIsModalOpen(false);
@@ -105,27 +108,41 @@ const CampaignDescription = () => {
             <div className="space-y-6 text-gray-700 leading-relaxed">
               <div>
                 <h2 className="text-2xl font-semibold border-b-2 border-gray-200 pb-2 mb-3">Project Overview</h2>
-                <p>{campaign.description}</p>
+                <div className="prose prose-gray max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkBreaks]}>{campaign.description}</ReactMarkdown>
+                </div>
               </div>
               <div>
                 <h2 className="text-2xl font-semibold border-b-2 border-gray-200 pb-2 mb-3">About the Entrepreneur</h2>
-                <p>{campaign.aboutEntrepreneur || campaign.about_entrepreneur}</p>
+                <div className="prose prose-gray max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkBreaks]}>{campaign.aboutEntrepreneur || campaign.about_entrepreneur}</ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>
           <div className="w-full md:w-1/3">
             <div className="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                disabled={!isMember}
-                className="w-full bg-[#2d3748] text-white font-bold py-3 px-4 rounded-md hover:bg-[#1a202c] transition-colors text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Back this Project
-              </button>
-              {!isMember && (
-                <p className="text-xs text-center text-red-600 -mt-2">
-                  Please log in to back this project.
-                </p>
+              {campaign.status !== 'funded' && (
+                <>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    disabled={!isMember}
+                    className="w-full bg-gradient-to-r from-[#134B70] to-[#508C9B] hover:from-[#0d3a54] hover:to-[#3d6f7c] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-lg disabled:bg-gray-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  >
+                    Back this Project
+                  </button>
+                  {!isMember && (
+                    <p className="text-xs text-center text-red-600 -mt-2">
+                      Please log in to back this project.
+                    </p>
+                  )}
+                </>
+              )}
+              {campaign.status === 'funded' && (
+                <div className="bg-green-50 border-2 border-green-500 p-4 rounded-md text-center">
+                  <div className="text-green-600 font-bold text-lg mb-1">✅ Fully Funded!</div>
+                  <p className="text-sm text-green-700">This campaign has reached its funding goal.</p>
+                </div>
               )}
               <div className="bg-white p-4 rounded-md shadow-sm text-center">
                 <p className="text-gray-600">Funding Type</p>
@@ -147,10 +164,22 @@ const CampaignDescription = () => {
                 <p className="text-gray-600">Funding Acquired ({fundingPercent}%)</p>
                 <p className="font-bold text-lg">₹{amountRaised.toLocaleString()}</p>
               </div>
-              <button className="w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-md hover:bg-gray-300 transition-colors">
-                Add to Watchlist
-              </button>
+              <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                <p className="text-gray-600">Backers</p>
+                <p className="font-bold text-lg">{campaign.backersCount || 0}</p>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Milestones Section */}
+        <div className="mt-12">
+          <div className="border-t-2 border-gray-200 pt-8">
+            <MilestonesPanel 
+              campaignId={campaign._id} 
+              creatorId={campaign.owner?._id || campaign.owner}
+              campaignStatus={campaign.status}
+            />
           </div>
         </div>
       </div>

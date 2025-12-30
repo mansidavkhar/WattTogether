@@ -1,5 +1,4 @@
 const Campaign = require('../models/campaignModel');
-const Project = require('../models/projectModel');
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
@@ -79,7 +78,14 @@ exports.createCampaign = async (req, res) => {
         const contractFactory = new ethers.ContractFactory(contractABI, contractBytecode, deployerWallet);
         console.log('     ✅ ContractFactory created.');
 
-        const creatorAddress = deployerWallet.address;
+        const { beneficiary_address } = req.body;
+        
+        if (!beneficiary_address || !ethers.isAddress(beneficiary_address)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid beneficiary wallet address is required (where funds will be sent)'
+            });
+        }
         
         // Convert INR to Wei for target amount
         const INR_TO_WEI_RATE = 100000; // ₹100,000 = 1 ETH
@@ -87,13 +93,13 @@ exports.createCampaign = async (req, res) => {
         const goalInWei = ethers.parseEther(ethAmount.toString());
         
         console.log(`[4/5] Deploying new escrow contract instance...`, { 
-            creatorAddress, 
+            beneficiaryAddress: beneficiary_address, 
             targetAmount: goalInWei.toString(),
             targetINR: amount 
         });
 
-        // Deploy with 2 parameters: creator address and target amount in Wei
-        const contract = await contractFactory.deploy(creatorAddress, goalInWei);
+        // Deploy with 2 parameters: beneficiary address and target amount in Wei
+        const contract = await contractFactory.deploy(beneficiary_address, goalInWei);
         
         console.log('     ⏳ Waiting for deployment confirmation...');
         await contract.waitForDeployment();
@@ -113,6 +119,7 @@ exports.createCampaign = async (req, res) => {
             coverImageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
             tags,
             escrowContractAddress: contractAddress,
+            beneficiaryAddress: beneficiary_address,
         });
         console.log('     ✅ Campaign saved to database.');
 
@@ -134,32 +141,33 @@ exports.listCampaigns = async (req, res) => {
         const { owner, status, mine } = req.query;
         const filter = {};
 
-        // Optional auth: if a token is provided, try to decode it to identify the member
-        let memberId = undefined;
-        try {
-            let token = req.header('x-auth-token');
-            if (!token && req.headers.authorization) {
-                const m = req.headers.authorization.match(/^Bearer\s+(.*)$/i);
-                if (m) token = m[1];
+        // If mine=true, auth middleware has already verified and attached req.member
+        if (mine === 'true') {
+            if (!req.member || !req.member.id) {
+                return res.status(401).json({ success: false, message: 'Unauthorized' });
             }
-            if (token) {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                memberId = decoded?.member?.id;
-            }
-        } catch (_) {
-            // Ignore token errors in this route; only used when mine=true
+            filter.owner = req.member.id;
         }
 
         if (status) filter.status = status;
         if (owner) filter.owner = owner;
-        if (mine === 'true') {
-            if (!memberId) return res.status(401).json({ success: false, message: 'Unauthorized' });
-            filter.owner = memberId;
+
+        // For public browse (no mine or status query), show only active campaigns
+        // For specific queries (mine=true or status specified), respect the filter
+        if (!filter.status && mine !== 'true') {
+            filter.status = 'active';
+        } else if (!filter.status && mine === 'true') {
+            // When fetching user's own campaigns, show active and funded
+            filter.status = { $in: ['active', 'funded'] };
         }
 
         const campaigns = await Campaign.find(filter)
             .populate('owner', 'name email walletAddress')
             .sort({ createdAt: -1 });
+        
+        console.log(`📋 Returning ${campaigns.length} campaigns. Sample backersCount:`, 
+            campaigns.slice(0, 3).map(c => ({ id: c._id, title: c.title, backers: c.backersCount })));
+        
         res.json({ success: true, campaigns });
     } catch (err) {
         console.error('List Campaigns Error:', err);
@@ -172,6 +180,8 @@ exports.getCampaignById = async (req, res) => {
         const { id } = req.params;
         const campaign = await Campaign.findById(id).populate('owner', 'name email walletAddress');
         if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+        
+        console.log(`📊 Returning campaign ${id} with backersCount: ${campaign.backersCount}`);
         res.json({ success: true, campaign });
     } catch (err) {
         console.error('Get Campaign Error:', err);
@@ -197,38 +207,5 @@ exports.updateFundingProgress = async (req, res) => {
     } catch (err) {
         console.error('Update Funding Error:', err);
         res.status(500).json({ success: false, message: 'Failed to update campaign progress' });
-    }
-};
-
-exports.convertToProject = async (req, res) => {
-    try {
-        const memberId = req.member?.id;
-        if (!memberId) return res.status(401).json({ success: false, message: 'Unauthorized' });
-        const { id } = req.params;
-        const campaign = await Campaign.findById(id);
-        if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-        if (campaign.owner.toString() !== memberId) return res.status(403).json({ success: false, message: 'Only owner can convert campaign to project' });
-        if (campaign.status !== 'funded') return res.status(400).json({ success: false, message: 'Campaign is not funded yet' });
-        
-        const project = await Project.create({
-            owner: campaign.owner,
-            sourceCampaign: campaign._id,
-            title: campaign.title,
-            description: campaign.description,
-            aboutEntrepreneur: campaign.aboutEntrepreneur,
-            coverImageUrl: campaign.coverImageUrl,
-            fundingType: campaign.fundingType,
-            fundingGoalINR: campaign.fundingGoalINR,
-            amountRaisedINR: campaign.amountRaisedINR,
-            backersCount: campaign.backersCount,
-            projectDeadline: campaign.projectDeadline,
-            escrowContractAddress: campaign.escrowContractAddress,
-            status: 'ongoing',
-            tags: campaign.tags,
-        });
-        res.status(201).json({ success: true, project });
-    } catch (err) {
-        console.error('Convert To Project Error:', err);
-        res.status(500).json({ success: false, message: 'Failed to convert campaign to project' });
     }
 };
