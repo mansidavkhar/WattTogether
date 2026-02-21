@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
+import { convertINRtoUSDC, convertINRtoEUR } from '../utils/currencyUtils';
 
 const ProjectDescription = () => {
     const { id } = useParams();
@@ -106,12 +107,18 @@ const ProjectDescription = () => {
                                 <p className="font-bold text-lg">{project.projectDeadline ? new Date(project.projectDeadline).toLocaleDateString() : 'N/A'}</p>
                             </div>
                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                                <p className="text-gray-600">Donation Type</p>
+                                <p className="font-bold text-lg">Milestone Based</p>
+                            </div>
+                            <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Total Funding Goal</p>
                                 <p className="font-bold text-lg">₹{fundingGoal.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500 mt-1">${convertINRtoUSDC(fundingGoal).toFixed(2)} / €{convertINRtoEUR(fundingGoal).toFixed(2)}</p>
                             </div>
                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Total Funding Acquired ({fundingPercent}%)</p>
                                 <p className="font-bold text-lg">₹{amountRaised.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500 mt-1">${convertINRtoUSDC(amountRaised).toFixed(2)} / €{convertINRtoEUR(amountRaised).toFixed(2)}</p>
                             </div>
                             <div className="bg-white p-4 rounded-md shadow-sm text-center">
                                 <p className="text-gray-600">Number of Backers</p>

@@ -20,7 +20,7 @@ const Wallet = () => {
         return;
       }
 
-      console.log('Fetching wallet with auth header:', authHeader.substring(0, 20) + '...');
+      console.log('Fetching wallet from backend...');
       
       const response = await fetch(`${API_URL}/members/get-wallet`, {
         headers: {
@@ -28,8 +28,6 @@ const Wallet = () => {
           'Content-Type': 'application/json',
         },
       });
-      
-      console.log('Wallet fetch response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -43,9 +41,9 @@ const Wallet = () => {
       if (data.walletAddress) {
         setWalletAddress(data.walletAddress);
       } else if (privyWallet) {
-        // If Privy has wallet but backend doesn't, use Privy wallet
-        console.log('Using Privy wallet:', privyWallet);
-        setWalletAddress(privyWallet);
+        // If Privy has wallet but backend doesn't, save it to backend
+        console.log('Saving Privy wallet to backend:', privyWallet);
+        await saveWalletToBackend(privyWallet, authHeader);
       } else {
         setDbError("Wallet address not found. It may take a moment for Privy to create your wallet.");
       }
@@ -54,6 +52,29 @@ const Wallet = () => {
       setDbError(`Failed to fetch wallet: ${err.message}`);
     } finally {
       setLoadingDb(false);
+    }
+  };
+
+  const saveWalletToBackend = async (address, authHeader) => {
+    try {
+      const response = await fetch(`${API_URL}/members/save-wallet`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ walletAddress: address }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Wallet saved to backend:', data);
+        setWalletAddress(address);
+      } else {
+        console.error('Failed to save wallet to backend');
+      }
+    } catch (err) {
+      console.error('Error saving wallet:', err);
     }
   };
 

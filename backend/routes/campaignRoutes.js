@@ -3,12 +3,21 @@ const router = express.Router();
 const path = require('path');
 const multer = require('multer');
 const auth = require('../middlewares/authMiddleware');
+
+// 🔄 SWITCH BETWEEN V1 (MATIC) and V2 (USDC + Governance)
+// V2 now uses ProjectEscrowV6 with optimistic governance
+// The contract artifact (ProjectEscrowV6.json) is already compiled and ready
+
+const USE_V2 = true; // ✅ ENABLED - Using ProjectEscrowV6 with USDC + Optimistic Governance
+
+const campaignController = require('../controllers/campaignController');
+
 const {
   createCampaign,
   listCampaigns,
   getCampaignById,
   updateFundingProgress,
-} = require('../controllers/campaignController');
+} = campaignController;
 const fundingController = require('../controllers/fundingController');
 
 // Set up multer for cover_image uploads
@@ -49,6 +58,11 @@ router.patch('/:id/funding', auth, updateFundingProgress);
 // @desc    (DEV ONLY) Fund a campaign using the developer faucet
 // @access  Private (requires user to be logged in)
 router.post('/dev-fund', auth, fundingController.fundWithTestUSDC);
+
+// @route   POST api/campaigns/:id/claim-refund
+// @desc    Claim pro-rata refund when project is cancelled
+// @access  Private (donors only)
+router.post('/:id/claim-refund', auth, campaignController.claimRefund);
 
 
 module.exports = router;

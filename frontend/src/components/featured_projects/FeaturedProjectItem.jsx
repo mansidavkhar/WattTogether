@@ -42,7 +42,7 @@ const FeaturedProjectItem = () => {
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 8000,
     pauseOnHover: true
   };
   

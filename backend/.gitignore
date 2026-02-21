@@ -25,3 +25,18 @@ dist-ssr
 .env
 
 keys.json
+
+solidity-files-cache.json
+
+old-contracts/
+config/
+scripts/
+uploads/
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+coverage/
+coverage.json
+*.tsbuildinfo

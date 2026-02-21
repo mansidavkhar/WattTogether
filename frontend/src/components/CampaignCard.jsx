@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { convertINRtoUSDC, convertINRtoEUR, formatCurrency } from '../utils/currencyUtils';
 
 export default function CampaignCard({ campaign }) {
   const navigate = useNavigate();
@@ -84,8 +85,14 @@ export default function CampaignCard({ campaign }) {
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="font-semibold text-gray-700">₹{amountRaised.toLocaleString()}</span>
-            <span className="text-gray-500">of ₹{fundingGoal.toLocaleString()}</span>
+            <div className="font-semibold text-gray-700">
+              <div>₹{amountRaised.toLocaleString()}</div>
+              <div className="text-xs text-gray-500">${convertINRtoUSDC(amountRaised).toFixed(2)} / €{convertINRtoEUR(amountRaised).toFixed(2)}</div>
+            </div>
+            <div className="text-right text-gray-500">
+              <div>of ₹{fundingGoal.toLocaleString()}</div>
+              <div className="text-xs">${convertINRtoUSDC(fundingGoal).toFixed(2)} / €{convertINRtoEUR(fundingGoal).toFixed(2)}</div>
+            </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div 

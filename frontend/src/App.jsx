@@ -11,7 +11,7 @@ import Projects from './pages/Projects'
 import StartACampaign from './pages/StartACampaign'
 import NewCampaignDetails from './pages/NewCampaignDetails'
 import MyProjects from './components/MyProject'
-import Network from './pages/Network'
+// import Network from './pages/Network' // 🚫 Hidden - Network feature disabled for V2
 import BrowseCampaigns from './pages/BrowseCampaigns'
 import MemberNavbar from './components/navbar/MemberNavbar'
 import MyInvestments from './pages/MyInvestments'
@@ -21,6 +21,7 @@ import Wallet from './pages/Wallet'
 import ViewMyCampaigns from './pages/ViewMyCampaigns'
 import KYCSubmission from './pages/KYCSubmission'
 import AdminKYCPanel from './pages/AdminKYCPanel'
+import AdminPanel from './pages/AdminPanel'
 
 
 const router = createBrowserRouter([
@@ -86,10 +87,11 @@ const router = createBrowserRouter([
     path: '/member/viewmycampaigns',
     element: <><MemberNavbar /><ViewMyCampaigns /><Footer /></>
   },
-  {
-    path: '/member/network',
-    element: <><MemberNavbar /><Network /><Footer /></>
-  },
+  // 🚫 Network route hidden for V2 - Using USDC governance instead
+  // {
+  //   path: '/member/network',
+  //   element: <><MemberNavbar /><Network /><Footer /></>
+  // },
   {
     path: '/member/wallet',
     element: <><MemberNavbar /><Wallet /><Footer /></>
@@ -101,6 +103,10 @@ const router = createBrowserRouter([
   {
     path: '/admin/kyc',
     element: <><MemberNavbar /><AdminKYCPanel /><Footer /></>
+  },
+  {
+    path: '/admin/disputes',
+    element: <><MemberNavbar /><AdminPanel /><Footer /></>
   },
 ])
 

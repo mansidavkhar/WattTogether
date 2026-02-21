@@ -41,14 +41,21 @@ const campaignSchema = new mongoose.Schema(
       index: true,
     },
 
-    // --- ADD THIS FIELD ---
+    // --- V2 Enhancement: USDC Support ---
     escrowContractAddress: {
       type: String,
       required: true,
     },
+    
+    // USDC amounts (for V2 campaigns using ProjectEscrowV6)
+    fundingGoalUSDC: { type: Number, min: 0 }, // Goal in USDC
+    amountRaisedUSDC: { type: Number, default: 0, min: 0 }, // Total raised in USDC
+    
+    creatorWalletAddress: { type: String, trim: true }, // Creator's wallet for governance
     // ----------------------
 
     // Beneficiary wallet address (where funds are sent when milestones are released)
+    // In V2, this is the same as creatorWalletAddress
     beneficiaryAddress: {
       type: String,
       required: true,

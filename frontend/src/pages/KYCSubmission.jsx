@@ -92,7 +92,7 @@ const KYCSubmission = () => {
         setKycStatus('pending');
         setTimeout(() => {
           navigate('/member/browsecampaigns');
-        }, 3000);
+        }, 5000);
       } else {
         setError(data.message || 'Failed to submit KYC documents');
       }
@@ -211,8 +211,17 @@ const KYCSubmission = () => {
               )}
 
               {success && (
-                <div className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded">
-                  {success}
+                <div className="bg-green-50 border-2 border-green-400 text-green-800 px-6 py-4 rounded-lg shadow-md">
+                  <div className="flex items-start">
+                    <svg className="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="font-semibold text-lg mb-1">Application Submitted Successfully!</p>
+                      <p className="text-sm">{success}</p>
+                      <p className="text-xs text-green-600 mt-2">Redirecting to Browse Campaigns in 5 seconds...</p>
+                    </div>
+                  </div>
                 </div>
               )}
 

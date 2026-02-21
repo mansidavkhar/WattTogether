@@ -1,7 +1,17 @@
-
+import { Link, useNavigate } from 'react-router-dom';
+import { useMemberAuth } from '../hooks/useMemberAuth';
 import heroBg from "../assets/how_we_work_bg_image.jpg";
 
 const HowDoWeWork = () => {
+  const { authenticated } = useMemberAuth();
+  const navigate = useNavigate();
+
+  const handleProtectedNavigation = (e, path) => {
+    if (!authenticated) {
+      e.preventDefault();
+      navigate('/login');
+    }
+  };
   return (
     <div className="w-full">
       {/* Header Section */}
@@ -98,7 +108,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#508C9B] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">1</div>
                   <div>
                     <h4 className="font-bold text-lg">Sign Up with Email</h4>
-                    <p className="text-gray-600">Click "Get Started" → Enter email → Receive magic link → Auto wallet creation</p>
+                    <p className="text-gray-600">Click <Link to="/login" className="text-[#508C9B] hover:underline font-semibold">"Get Started"</Link> → Enter email → Receive magic link → Auto wallet creation</p>
                   </div>
                 </div>
 
@@ -106,7 +116,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#508C9B] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">2</div>
                   <div>
                     <h4 className="font-bold text-lg">Browse Campaigns</h4>
-                    <p className="text-gray-600">Navigate to "Browse Campaigns" → Filter by status → View project details</p>
+                    <p className="text-gray-600">Navigate to <Link to="/member/browsecampaigns" onClick={(e) => handleProtectedNavigation(e, '/member/browsecampaigns')} className="text-[#508C9B] hover:underline font-semibold">"Browse Campaigns"</Link> → Filter by status → View project details</p>
                   </div>
                 </div>
 
@@ -130,7 +140,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#508C9B] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">5</div>
                   <div>
                     <h4 className="font-bold text-lg">Track Investments</h4>
-                    <p className="text-gray-600">Go to "My Investments" → View all donations → Check transaction hashes on blockchain</p>
+                    <p className="text-gray-600">Go to <Link to="/member/myinvestments" onClick={(e) => handleProtectedNavigation(e, '/member/myinvestments')} className="text-[#508C9B] hover:underline font-semibold">"My Investments"</Link> → View all donations → Check transaction hashes on blockchain</p>
                   </div>
                 </div>
               </div>
@@ -147,7 +157,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#24A232] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">1</div>
                   <div>
                     <h4 className="font-bold text-lg">Complete KYC</h4>
-                    <p className="text-gray-600">Navigate to "KYC Submission" → Upload identity docs → Wait for admin approval</p>
+                    <p className="text-gray-600">Navigate to <Link to="/member/kycsubmission" onClick={(e) => handleProtectedNavigation(e, '/member/kycsubmission')} className="text-[#24A232] hover:underline font-semibold">"KYC Submission"</Link> → Upload identity docs → Wait for admin approval</p>
                   </div>
                 </div>
 
@@ -155,7 +165,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#24A232] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">2</div>
                   <div>
                     <h4 className="font-bold text-lg">Create Campaign</h4>
-                    <p className="text-gray-600">Click "Start a Campaign" → Fill details → Set funding goal → Contract auto-deploys</p>
+                    <p className="text-gray-600">Click <Link to="/member/startacampaign" onClick={(e) => handleProtectedNavigation(e, '/member/startacampaign')} className="text-[#24A232] hover:underline font-semibold">"Start a Campaign"</Link> → Fill details → Set funding goal → Contract auto-deploys</p>
                   </div>
                 </div>
 
@@ -163,7 +173,7 @@ const HowDoWeWork = () => {
                   <div className="bg-[#24A232] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3 flex-shrink-0 mt-1">3</div>
                   <div>
                     <h4 className="font-bold text-lg">Monitor Progress</h4>
-                    <p className="text-gray-600">View "My Campaigns" → Track donations → Check backer count → Real-time updates</p>
+                    <p className="text-gray-600">View <Link to="/member/viewmycampaigns" onClick={(e) => handleProtectedNavigation(e, '/member/viewmycampaigns')} className="text-[#24A232] hover:underline font-semibold">"My Campaigns"</Link> → Track donations → Check backer count → Real-time updates</p>
                   </div>
                 </div>
 

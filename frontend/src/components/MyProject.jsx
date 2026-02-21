@@ -22,8 +22,8 @@ const MyProject = () => {
           return;
         }
 
-        // Fetch user's funded campaigns from campaigns endpoint with mine=true&status=funded
-        const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?mine=true&status=funded`, {
+        // Fetch user's funded campaigns AND cancelled campaigns
+        const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns?mine=true&status=funded,cancelled`, {
           method: 'GET',
           headers: {
             Authorization: authHeader,
@@ -64,7 +64,7 @@ const MyProject = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Funded Projects</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Ongoing Projects</h1>
           <p className="text-gray-600">Manage milestones and project progress</p>
         </div>
 
@@ -98,11 +98,29 @@ const MyProject = () => {
         {!loading && !error && projects.length > 0 && (
           <>
             <div className="mb-6 text-sm text-gray-600">
-              Managing <span className="font-semibold text-gray-900">{projects.length}</span> funded project{projects.length !== 1 ? 's' : ''}
+              Managing <span className="font-semibold text-gray-900">{projects.length}</span> project{projects.length !== 1 ? 's' : ''}
             </div>
             <CardGrid>
               {projects.map((project) => (
-                <CampaignCard key={project._id} campaign={project} />
+                <div key={project._id} className="relative">
+                  {project.status === 'cancelled' && (
+                    <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-t-lg z-10 text-center">
+                      🚨 CANCELLED BY GUARDIAN
+                    </div>
+                  )}
+                  <div className={project.status === 'cancelled' ? 'mt-6 opacity-75 pointer-events-none' : ''}>
+                    <CampaignCard campaign={project} />
+                  </div>
+                  {project.status === 'cancelled' && (
+                    <div className="absolute inset-0 bg-red-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+                      <div className="bg-white border-2 border-red-500 rounded-lg p-4 shadow-lg max-w-xs mx-4">
+                        <p className="text-red-800 font-semibold text-sm text-center">
+                          This project was terminated. Donors can claim refunds.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </CardGrid>
           </>

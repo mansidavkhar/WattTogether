@@ -2,14 +2,44 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { polygonAmoy } from 'viem/chains';
 
 const PrivyAuthProvider = ({ children }) => {
-  // Suppress React hydration warnings from Privy in development
+  // Suppress React hydration warnings and CORS errors from Privy in development
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     const originalError = console.error;
+    const originalWarn = console.warn;
+    
     console.error = function(...args) {
-      if (typeof args[0] === 'string' && args[0].includes('In HTML, <div> cannot be a descendant of <p>')) {
-        return; // Suppress Privy hydration warning
+      const message = args[0];
+      
+      // Suppress Privy hydration warning
+      if (typeof message === 'string' && message.includes('In HTML, <div> cannot be a descendant of <p>')) {
+        return;
       }
+      
+      // Suppress CORS errors from Privy analytics
+      if (typeof message === 'string' && (
+        message.includes('Access to fetch at \'https://auth.privy.io/api/v1/analytics_events\'') ||
+        message.includes('CORS policy') && message.includes('privy.io')
+      )) {
+        console.log('[Privy Analytics] CORS blocked - this is expected in development and doesn\'t affect functionality');
+        return;
+      }
+      
       originalError.call(console, ...args);
+    };
+
+    // Also suppress network errors for Privy analytics 
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      try {
+        return await originalFetch(...args);
+      } catch (error) {
+        // Suppress analytics fetch errors silently
+        if (args[0] && args[0].includes('auth.privy.io/api/v1/analytics_events')) {
+          console.log('[Privy Analytics] Network error suppressed - this doesn\'t affect app functionality');
+          return { ok: false, status: 0, json: () => Promise.resolve({}) };
+        }
+        throw error;
+      }
     };
   }
 

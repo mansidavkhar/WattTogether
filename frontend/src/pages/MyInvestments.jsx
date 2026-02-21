@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useMemberAuth } from "../hooks/useMemberAuth";
 import { useNavigate } from "react-router-dom";
+import { convertINRtoUSDC, convertINRtoEUR } from "../utils/currencyUtils";
 
 export default function MyInvestments() {
   const [items, setItems] = useState([]);
@@ -56,6 +57,9 @@ export default function MyInvestments() {
       case "amount":
         // Sort by total donated (highest first)
         return (b.myTotalDonated || 0) - (a.myTotalDonated || 0);
+      case "lowest":
+        // Sort by total donated (lowest first)
+        return (a.myTotalDonated || 0) - (b.myTotalDonated || 0);
       case "name":
         // Sort alphabetically by campaign title
         return (a.title || "").localeCompare(b.title || "");
@@ -120,6 +124,7 @@ export default function MyInvestments() {
                 >
                   <option value="recent">Recent Donation</option>
                   <option value="amount">Highest Contribution</option>
+                  <option value="lowest">Lowest Contribution</option>
                   <option value="name">Campaign Name (A-Z)</option>
                 </select>
               </div>
@@ -190,27 +195,19 @@ export default function MyInvestments() {
                           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-2.5 rounded-lg">
                             <p className="text-xs text-blue-700 font-semibold mb-0.5">Total Raised</p>
                             <p className="text-lg font-bold text-blue-700">₹{(campaign.amountRaisedINR || 0).toLocaleString()}</p>
+                            <p className="text-xs text-blue-600">${convertINRtoUSDC(campaign.amountRaisedINR || 0).toFixed(2)} / €{convertINRtoEUR(campaign.amountRaisedINR || 0).toFixed(2)}</p>
                           </div>
                           <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-2.5 rounded-lg">
                             <p className="text-xs text-gray-700 font-semibold mb-0.5">Goal</p>
                             <p className="text-lg font-bold text-gray-700">₹{(campaign.fundingGoalINR || 0).toLocaleString()}</p>
+                            <p className="text-xs text-gray-600">${convertINRtoUSDC(campaign.fundingGoalINR || 0).toFixed(2)} / €{convertINRtoEUR(campaign.fundingGoalINR || 0).toFixed(2)}</p>
                           </div>
                         </div>
 
                         <div className="flex gap-2">
                           <button
-                            onClick={() => navigate(`/member/campaign/${campaign._id}`)}
-                            className="flex-1 bg-[#508C9B] hover:bg-[#3d6f7c] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center text-sm"
-                          >
-                            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            View Campaign
-                          </button>
-                          <button
                             onClick={() => setExpandedCampaign(expandedCampaign === campaign._id ? null : campaign._id)}
-                            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center text-sm"
+                            className="flex-1 bg-gradient-to-r from-[#134B70] to-[#508C9B] hover:from-[#0d3a54] hover:to-[#3d6f7c] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center text-sm"
                           >
                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -219,6 +216,16 @@ export default function MyInvestments() {
                             <svg className={`w-4 h-4 ml-2 transition-transform ${expandedCampaign === campaign._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
+                          </button>
+                          <button
+                            onClick={() => navigate(`/member/campaign/${campaign._id}`)}
+                            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center text-sm"
+                          >
+                            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View Campaign
                           </button>
                         </div>
                         </div>

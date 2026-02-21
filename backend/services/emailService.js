@@ -111,21 +111,57 @@ Please visit WattTogether to review the milestone and cast your vote.
     };
 
     // Send email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email notification sent:', info.messageId);
-    console.log('📧 Notified', donorEmails.length, 'donors');
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('✅ Email notification sent:', info.messageId);
+      console.log('📧 Notified', donorEmails.length, 'donors');
 
-    return {
-      success: true,
-      messageId: info.messageId,
-      sent: donorEmails.length
-    };
+      return {
+        success: true,
+        messageId: info.messageId,
+        sent: donorEmails.length
+      };
+    } catch (sendError) {
+      // Handle authentication errors gracefully
+      if (sendError.code === 'EAUTH') {
+        console.warn('\n⚠️ ═══════════════════════════════════════════════════════════════');
+        console.warn('⚠️  EMAIL AUTHENTICATION FAILED - Email notifications disabled');
+        console.warn('⚠️ ═══════════════════════════════════════════════════════════════');
+        console.warn('⚠️  Gmail requires App Passwords (not your regular password)');
+        console.warn('⚠️  To enable email notifications:');
+        console.warn('⚠️  ');
+        console.warn('⚠️  1. Go to: https://myaccount.google.com/apppasswords');
+        console.warn('⚠️  2. Create a new App Password (select "Mail" and "Other")');
+        console.warn('⚠️  3. Update .env file: EMAIL_PASSWORD=<16-char-app-password>');
+        console.warn('⚠️  4. Restart backend server');
+        console.warn('⚠️  ');
+        console.warn('⚠️  For now, milestone notifications will be skipped.');
+        console.warn('⚠️ ═══════════════════════════════════════════════════════════════\n');
+        
+        return {
+          success: true, // Don't fail the milestone creation
+          message: 'Email authentication not configured. Notifications skipped.',
+          sent: 0
+        };
+      }
+      
+      // Other email errors
+      console.error('❌ Email send error:', sendError.message);
+      return {
+        success: true, // Don't fail the milestone creation
+        message: 'Email failed but milestone created successfully',
+        error: sendError.message,
+        sent: 0
+      };
+    }
 
   } catch (error) {
     console.error('❌ Email notification error:', error);
     return {
-      success: false,
-      error: error.message
+      success: true, // Don't fail the milestone creation
+      message: 'Email service error. Notifications skipped.',
+      error: error.message,
+      sent: 0
     };
   }
 };

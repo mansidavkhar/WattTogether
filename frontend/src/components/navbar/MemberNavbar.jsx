@@ -26,7 +26,8 @@ const MemberNavbar = () => {
           <Link to="/member/browsecampaigns" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Browse Campaigns</Link>
           <Link to="/member/myinvestments" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Investments</Link>
           <Link to="/member/projects" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">My Projects</Link>
-          <Link to="/member/network" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Network</Link>
+          {/* 🚫 Network feature disabled for V2 */}
+          {/* <Link to="/member/network" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Network</Link> */}
           {/* Remove wallet page link if you fully auto-create wallet on registration */}
           <Link to="/member/wallet" className="text-white text-xl hover:underline underline-offset-8 px-5 py-2">Wallet</Link>
           <button

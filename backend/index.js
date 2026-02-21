@@ -7,6 +7,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 const { initializeSocket } = require('./socket/socketHandler');
+const { initializeCronJobs, manualTrigger } = require('./services/milestoneExecutionService');
 
 // Modular routing
 const memberRoutes = require('./routes/memberRoutes');
@@ -14,8 +15,10 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const networkRoutes = require('./routes/networkRoutes');
 const faucetRoutes = require('./routes/faucetRoutes');
 const kycRoutes = require('./routes/kycRoutes');
-const donationRoutesV2 = require('./routes/donationRoutesV2');
-const milestoneRoutes = require('./routes/milestoneRoutes');
+const donationRoutes = require('./routes/donationRoutes');
+const milestoneSubmissionRoutes = require('./routes/milestoneSubmissionRoutes');
+const milestoneGovernanceRoutes = require('./routes/milestoneGovernanceRoutes');
+const milestoneCommentRoutes = require('./routes/milestoneCommentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,7 +43,13 @@ uploadDirs.forEach(dir => {
 
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully.'))
+  .then(() => {
+    console.log('✅ MongoDB connected successfully.');
+    
+    // Initialize milestone execution cron jobs
+    initializeCronJobs();
+    console.log('✅ Milestone execution cron jobs initialized');
+  })
   .catch((err) => {
     console.error('MongoDB connection error:', err.message);
     process.exit(1);
@@ -55,8 +64,22 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/faucet', faucetRoutes);
 app.use('/api/kyc', kycRoutes);
-app.use('/api/donations', donationRoutesV2);
-app.use('/api/milestones', milestoneRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/milestones', milestoneSubmissionRoutes);
+app.use('/api/governance', milestoneGovernanceRoutes);
+app.use('/api/milestone-comments', milestoneCommentRoutes);
+
+// Manual trigger for milestone execution (for testing)
+app.post('/api/admin/trigger-milestone-execution', async (req, res) => {
+  try {
+    console.log('🔧 Manual milestone execution triggered');
+    await manualTrigger();
+    res.json({ success: true, message: 'Milestone execution completed' });
+  } catch (error) {
+    console.error('Error in manual trigger:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // Root
 app.get('/', (req, res) => {

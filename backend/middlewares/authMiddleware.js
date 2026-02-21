@@ -48,10 +48,10 @@ const authMiddleware = async (req, res, next) => {
             });
         }
 
-        // If wallet address is missing, try to fetch it from Privy
-        if (!member.walletAddress && member.privyUserId) {
+        // If wallet address is missing, try to fetch it from Privy (only once per request)
+        if (!member.walletAddress && member.privyUserId && !req._walletFetchAttempted) {
             try {
-                console.log('Auth middleware - Fetching wallet address from Privy...');
+                req._walletFetchAttempted = true; // Prevent multiple attempts in same request chain
                 const privyUser = await privyClient.getUserById(member.privyUserId);
                 const walletAccount = privyUser.linkedAccounts?.find(account => 
                     account.type === 'wallet' && account.walletClient === 'privy'
@@ -62,10 +62,12 @@ const authMiddleware = async (req, res, next) => {
                     await member.save();
                     // Reload member to ensure we have the updated data
                     member = await Member.findById(member._id);
-                    console.log('Auth middleware - Wallet address synced from Privy:', walletAccount.address);
+                    console.log('✅ Wallet address synced from Privy:', walletAccount.address);
+                } else {
+                    console.log('⚠️ No Privy wallet found for user. User may need to create a wallet first.');
                 }
             } catch (privyError) {
-                console.warn('Auth middleware - Could not fetch wallet from Privy:', privyError.message);
+                console.warn('⚠️ Could not fetch wallet from Privy:', privyError.message);
             }
         }
 

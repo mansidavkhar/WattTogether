@@ -23,23 +23,38 @@ export const fetchCampaigns = createAsyncThunk(
   'campaigns/fetchCampaigns',
   async (_, { rejectWithValue }) => {
     try {
+      const apiUrl = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:5000/api';
+      const url = `${apiUrl}/campaigns`;
+      
+      console.log('🔍 Fetching campaigns from:', url);
+
       // Fetch both active and funded campaigns for browse page (public endpoint)
-      const res = await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/campaigns`, {
+      const res = await fetch(url, {
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+
+      console.log('📡 Response status:', res.status);
 
       if (!res.ok) {
         const text = await res.text();
+        console.error('❌ Fetch failed:', text);
         throw new Error(text || `HTTP ${res.status}`);
       }
 
       const data = await res.json();
+      console.log('✅ Campaigns data received:', data);
 
       if (data?.success) {
-        return (data.campaigns || []).map(mapCampaignToUI);
+        const mapped = (data.campaigns || []).map(mapCampaignToUI);
+        console.log('📊 Mapped campaigns:', mapped.length, 'campaigns');
+        return mapped;
       }
       throw new Error(data?.message || 'Failed to fetch campaigns');
     } catch (err) {
+      console.error('🔥 Fetch campaigns error:', err);
       return rejectWithValue(err.message || 'Unknown error');
     }
   }
