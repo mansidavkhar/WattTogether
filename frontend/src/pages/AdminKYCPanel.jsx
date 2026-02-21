@@ -149,7 +149,8 @@ const AdminKYCPanel = () => {
                     <h4 className="text-sm font-medium text-gray-700 mb-3">Documents:</h4>
                     <div className="grid grid-cols-2 gap-3">
                       {member.kycDocuments?.map((doc, index) => {
-                        const imageUrl = `http://localhost:5000${doc}`;
+                        const apiBase = import.meta.env.VITE_API_GATEWAY_URL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
+                        const imageUrl = `${apiBase}${doc}`;
                         return (
                           <a
                             key={index}
