@@ -1,7 +1,21 @@
 // Footer.jsx
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMemberAuth } from '../hooks/useMemberAuth';
 
 const Footer = () => {
+  const { authenticated, ready } = useMemberAuth();
+  const navigate = useNavigate();
+
+  // Handler for platform links that require authentication
+  const handlePlatformClick = (e, path) => {
+    e.preventDefault();
+    if (authenticated) {
+      navigate(path);
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <footer className="bg-[#201E43] text-white">
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -20,16 +34,35 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-[#508C9B]">Quick Links</h3>
             <nav className="space-y-2">
               <div>
-                <Link to="/" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Home</Link>
+                <Link 
+                  to={authenticated ? "/member/home" : "/"} 
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm"
+                >
+                  Home
+                </Link>
               </div>
               <div>
-                <Link to="/howdowework" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">How We Work</Link>
+                <Link 
+                  to={authenticated ? "/member/howdowework" : "/howdowework"} 
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm"
+                >
+                  How We Work
+                </Link>
               </div>
               <div>
-                <Link to="/contactus" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Contact Us</Link>
+                <Link 
+                  to={authenticated ? "/member/contactus" : "/contactus"} 
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm"
+                >
+                  Contact Us
+                </Link>
               </div>
               <div>
-                <Link to="/login" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Login</Link>
+                {authenticated ? (
+                  <Link to="/member/wallet" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">My Wallet</Link>
+                ) : (
+                  <Link to="/login" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Login</Link>
+                )}
               </div>
             </nav>
           </div>
@@ -39,13 +72,31 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-[#508C9B]">Platform</h3>
             <nav className="space-y-2">
               <div>
-                <Link to="/login" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Browse Campaigns</Link>
+                <a 
+                  href="#" 
+                  onClick={(e) => handlePlatformClick(e, '/member/browsecampaigns')}
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm cursor-pointer"
+                >
+                  Browse Campaigns
+                </a>
               </div>
               <div>
-                <Link to="/login" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">Start a Campaign</Link>
+                <a 
+                  href="#" 
+                  onClick={(e) => handlePlatformClick(e, '/member/startacampaign')}
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm cursor-pointer"
+                >
+                  Start a Campaign
+                </a>
               </div>
               <div>
-                <Link to="/login" className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm">My Investments</Link>
+                <a 
+                  href="#" 
+                  onClick={(e) => handlePlatformClick(e, '/member/myinvestments')}
+                  className="text-gray-300 hover:text-[#508C9B] transition-colors text-sm cursor-pointer"
+                >
+                  My Investments
+                </a>
               </div>
             </nav>
           </div>

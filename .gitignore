@@ -1,6 +1,6 @@
 .env
 node_modules
-reference.md
+todo.md
 *.md
 docs/
 v1_archive/ 

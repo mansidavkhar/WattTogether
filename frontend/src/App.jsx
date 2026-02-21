@@ -48,6 +48,14 @@ const router = createBrowserRouter([
     element: <><MemberNavbar /><MainLandingPage /><Footer /></>
   },
   {
+    path: '/member/howdowework',
+    element: <><MemberNavbar /><HowDoWeWork /><Footer /></>
+  },
+  {
+    path: '/member/contactus',
+    element: <><MemberNavbar /><ContactUs /><Footer /></>
+  },
+  {
     path: '/member/browsecampaigns',
     element: <><MemberNavbar /><BrowseCampaigns /><Footer /></>
   },
