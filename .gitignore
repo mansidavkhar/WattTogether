@@ -1,6 +1,5 @@
 .env
 node_modules
 todo.md
-*.md
 docs/
 v1_archive/ 
