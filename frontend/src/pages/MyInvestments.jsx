@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useMemberAuth } from "../hooks/useMemberAuth";
 import { useNavigate } from "react-router-dom";
-import { convertINRtoUSDC, convertINRtoEUR } from "../utils/currencyUtils";
+import { convertINRtoUSDC, convertINRtoEUR, resolveAssetUrl } from "../utils/currencyUtils";
 
 export default function MyInvestments() {
   const [items, setItems] = useState([]);
@@ -132,9 +132,8 @@ export default function MyInvestments() {
             
             <div className="space-y-8">
               {sortedItems.map((campaign) => {
-                const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
                 const coverImage = campaign.coverImageUrl || campaign.cover_image
-                  ? `${baseUrl}${campaign.coverImageUrl || campaign.cover_image}`
+                  ? resolveAssetUrl(campaign.coverImageUrl || campaign.cover_image, BACKEND_URL)
                   : 'https://placehold.co/1200x600/201E43/FFFFFF?text=WattTogether';
                 
                 return (

@@ -147,7 +147,7 @@ exports.createCampaign = async (req, res) => {
             aboutEntrepreneur: about_entrepreneur,
             fundingDeadline: funding_deadline,
             projectDeadline: project_deadline,
-            coverImageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+            coverImageUrl: req.file ? req.file.path : undefined,
             tags,
             escrowContractAddress: escrowAddress,
             creatorWalletAddress: creatorWalletAddress,

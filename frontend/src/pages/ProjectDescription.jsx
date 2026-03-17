@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { convertINRtoUSDC, convertINRtoEUR } from '../utils/currencyUtils';
+import { convertINRtoUSDC, convertINRtoEUR, resolveAssetUrl } from '../utils/currencyUtils';
 
 const ProjectDescription = () => {
     const { id } = useParams();
@@ -44,10 +44,8 @@ const ProjectDescription = () => {
         return <div className="p-8 text-center">Project data could not be loaded.</div>;
     }
 
-    const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
-
     const coverImage = project.coverImageUrl || project.cover_image
-        ? `${BACKEND_URL}${project.coverImageUrl || project.cover_image}`
+        ? resolveAssetUrl(project.coverImageUrl || project.cover_image, API_URL)
         : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
 
     // FIX: Handle both original and mapped property names

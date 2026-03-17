@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 const multer = require('multer');
 const auth = require('../middlewares/authMiddleware');
+const { createCloudinaryStorage } = require('../config/cloudinary');
 
 // 🔄 SWITCH BETWEEN V1 (MATIC) and V2 (USDC + Governance)
 // V2 now uses ProjectEscrowV6 with optimistic governance
@@ -20,17 +20,8 @@ const {
 } = campaignController;
 const fundingController = require('../controllers/fundingController');
 
-// Set up multer for cover_image uploads
-const uploadDir = path.join(__dirname, '..', 'uploads');
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || '');
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    cb(null, name);
-  },
-});
-const upload = multer({ storage });
+// Set up multer for cover_image uploads (Cloudinary)
+const upload = multer({ storage: createCloudinaryStorage('campaigns') });
 
 // --- Campaign Lifecycle Routes ---
 

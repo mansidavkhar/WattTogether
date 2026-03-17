@@ -16,8 +16,8 @@ exports.submitKYC = async (req, res) => {
             });
         }
 
-        // Get uploaded file URLs - files are stored in uploads/kyc/ folder
-        const documentUrls = req.files.map(file => `/uploads/kyc/${file.filename}`);
+        // Get uploaded file URLs from Cloudinary
+        const documentUrls = req.files.map(file => file.path);
 
         // Update member with KYC documents
         const member = await Member.findByIdAndUpdate(

@@ -22,13 +22,23 @@ if (process.env.PINATA_JWT) {
  * @param {Object} metadata - Optional metadata (name, description, campaignId, etc.)
  * @returns {String} IPFS CID
  */
-async function uploadFileToIPFS(filePath, metadata = {}) {
+async function uploadFileToIPFS(fileSource, metadata = {}) {
   try {
-    const readableStream = fs.createReadStream(filePath);
-    
+    // fileSource can be a file path (string) or a multer file object with buffer
+    let readableStream;
+    let fileName;
+    if (typeof fileSource === 'string') {
+      readableStream = fs.createReadStream(fileSource);
+      fileName = metadata.name || path.basename(fileSource);
+    } else {
+      // multer memoryStorage file: { buffer, originalname, ... }
+      const { Readable } = require('stream');
+      readableStream = Readable.from(fileSource.buffer);
+      fileName = metadata.name || fileSource.originalname || 'upload';
+    }
     const options = {
       pinataMetadata: {
-        name: metadata.name || path.basename(filePath),
+        name: fileName,
         keyvalues: {
           uploadedBy: 'WattTogether',
           timestamp: Date.now().toString(),
@@ -100,8 +110,8 @@ async function uploadMultipleFiles(files, metadata = {}) {
     
     // Upload each file
     for (const file of files) {
-      const cid = await uploadFileToIPFS(file.path, {
-        name: file.originalname || path.basename(file.path),
+      const cid = await uploadFileToIPFS(file, {
+        name: file.originalname || (typeof file === 'string' ? path.basename(file) : 'upload'),
         campaignId: metadata.campaignId,
         milestoneId: metadata.milestoneId
       });

@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from 'react-router-dom';
+import { resolveAssetUrl } from '../utils/currencyUtils';
 
 export default function ProjectCard({ project }) {
   const navigate = useNavigate();
@@ -14,11 +15,10 @@ export default function ProjectCard({ project }) {
 
 
   const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
-  const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
   
   const rawImagePath = project.coverImage || project.coverImageUrl || project.cover_image;
   const imageUrl = rawImagePath
-    ? `${baseUrl}${rawImagePath}`
+    ? resolveAssetUrl(rawImagePath, BACKEND_URL)
     : `https://placehold.co/600x400/2d3748/FFFFFF?text=${encodeURIComponent(project.title || 'Project')}`;
 
   const title = project.title || 'Project';

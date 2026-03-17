@@ -2,8 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
-const path = require('path');
-const fs = require('fs');
 require('dotenv').config();
 
 const { initializeSocket } = require('./socket/socketHandler');
@@ -31,16 +29,6 @@ initializeSocket(server);
 app.use(cors());
 app.use(express.json());
 
-// Ensure uploads directories exist
-const uploadDirs = ['uploads', 'uploads/kyc', 'uploads/milestones'];
-uploadDirs.forEach(dir => {
-  const dirPath = path.join(__dirname, dir);
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`Created directory: ${dir}`);
-  }
-});
-
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
@@ -54,9 +42,6 @@ mongoose.connect(process.env.MONGO_URI)
     console.error('MongoDB connection error:', err.message);
     process.exit(1);
   });
-
-// Static hosting (uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Modular Routes
 app.use('/api/members', memberRoutes);

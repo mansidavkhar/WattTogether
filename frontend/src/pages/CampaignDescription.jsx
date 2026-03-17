@@ -7,7 +7,7 @@ import { useMemberAuth } from '../hooks/useMemberAuth.js';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
-import { convertINRtoUSDC, convertINRtoEUR } from '../utils/currencyUtils.js';
+import { convertINRtoUSDC, convertINRtoEUR, resolveAssetUrl } from '../utils/currencyUtils.js';
 
 const CampaignDescription = () => {
   const { id } = useParams();
@@ -85,10 +85,8 @@ const CampaignDescription = () => {
     return <div className="p-8 text-center">Campaign data could not be loaded.</div>;
   }
 
-  const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
-
   const coverImage = campaign.coverImageUrl || campaign.cover_image
-    ? `${baseUrl}${campaign.coverImageUrl || campaign.cover_image}`
+    ? resolveAssetUrl(campaign.coverImageUrl || campaign.cover_image, BACKEND_URL)
     : 'https://placehold.co/1200x800/201E43/FFFFFF?text=WattTogether';
 
 

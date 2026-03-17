@@ -72,3 +72,19 @@ export const displayTripleCurrency = (inrAmount) => {
   const eurAmount = convertINRtoEUR(inrAmount);
   return `${formatCurrency(inrAmount, 'INR')} ($${usdcAmount.toFixed(2)} / €${eurAmount.toFixed(2)})`;
 };
+
+export const resolveAssetUrl = (assetPath, apiGatewayUrl) => {
+  if (!assetPath) return null;
+
+  if (/^https?:\/\//i.test(assetPath)) {
+    return assetPath;
+  }
+
+  if (!apiGatewayUrl) {
+    return assetPath;
+  }
+
+  const baseUrl = apiGatewayUrl.replace(/\/api\/?$/, '');
+  const normalizedPath = assetPath.startsWith('/') ? assetPath : `/${assetPath}`;
+  return `${baseUrl}${normalizedPath}`;
+};

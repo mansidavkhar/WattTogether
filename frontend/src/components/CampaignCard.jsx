@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { convertINRtoUSDC, convertINRtoEUR, formatCurrency } from '../utils/currencyUtils';
+import { convertINRtoUSDC, convertINRtoEUR, resolveAssetUrl } from '../utils/currencyUtils';
 
 export default function CampaignCard({ campaign }) {
   const navigate = useNavigate();
@@ -12,10 +12,9 @@ export default function CampaignCard({ campaign }) {
 
   const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
   const rawImagePath = campaign.coverImage || campaign.coverImageUrl || campaign.cover_image;
-  const baseUrl = BACKEND_URL.replace(/\/api\/?$/, '');
 
   const imageUrl = rawImagePath
-    ? `${baseUrl}${rawImagePath}`
+    ? resolveAssetUrl(rawImagePath, BACKEND_URL)
     : `https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&h=400&fit=crop`;
 
   const title = campaign.title || campaign.project_name || 'Campaign';
