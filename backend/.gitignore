@@ -30,6 +30,8 @@ solidity-files-cache.json
 
 old-contracts/
 config/
+!config/
+!config/cloudinary.js
 scripts/
 uploads/
 
