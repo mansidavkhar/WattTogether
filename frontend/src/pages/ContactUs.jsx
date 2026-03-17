@@ -5,15 +5,22 @@ import how_we_work_bg_image from '../assets/how_we_work_bg_image.jpg';
 const ContactUs = () => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
     email: '',
     message: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log(formData);
+
+    const recipientEmail = 'davkharmansi29@gmail.com';
+    const subject = encodeURIComponent(`WattTogether Contact - ${formData.name || 'Website Visitor'}`);
+    const body = encodeURIComponent(
+      `Name: ${formData.name || 'N/A'}\n` +
+      `Email: ${formData.email || 'N/A'}\n\n` +
+      `${formData.message || ''}`
+    );
+
+    window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
   };
 
   const handleChange = (e) => {
@@ -58,37 +65,19 @@ const ContactUs = () => {
       {/* Contact Form Section */}
       <section className="max-w-4xl w-full mx-auto mt-8 flex-1 space-y-6 py-25">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name & Phone in one row */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Name */}
-            <div className="flex flex-col flex-1">
-              <label className="font-medium mb-1" htmlFor="name">
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="Your Name"
-                value={formData.name}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#201E43]"
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div className="flex flex-col flex-1">
-              <label className="font-medium mb-1" htmlFor="phone">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                placeholder="+91"
-                value={formData.phone}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#201E43]"
-              />
-            </div>
+          {/* Name */}
+          <div className="flex flex-col">
+            <label className="font-medium mb-1" htmlFor="name">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Your Name"
+              value={formData.name}
+              onChange={handleChange}
+              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#201E43]"
+            />
           </div>
 
           {/* Email */}
