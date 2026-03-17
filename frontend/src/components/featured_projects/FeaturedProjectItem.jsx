@@ -1,5 +1,7 @@
 import Featured from "../../assets/featured.js";
 import Slider from "react-slick";
+import { useNavigate } from 'react-router-dom';
+import { useMemberAuth } from '../../hooks/useMemberAuth';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -33,6 +35,22 @@ const PrevArrow = (props) => {
 };
 
 const FeaturedProjectItem = () => {
+  const navigate = useNavigate();
+  const { authenticated } = useMemberAuth();
+
+  const handleViewDetails = (campaignId) => {
+    if (!campaignId) {
+      navigate('/login');
+      return;
+    }
+
+    if (authenticated) {
+      navigate(`/member/campaign/${campaignId}`);
+    } else {
+      navigate('/login');
+    }
+  };
+
   const settings = {
     dots: true,
     infinite: true,
@@ -55,7 +73,10 @@ const FeaturedProjectItem = () => {
               <div className="flex-1 max-w-md">
                 <p className="font-medium text-3xl mb-4 font-[inter]">{item.title}</p>
                 <p className="mb-4 text-gray-200">{item.projectInfo}</p>
-                <button className="bg-[#508C9B] hover:bg-[#3d6f7a] py-2 px-8 rounded-3xl text-lg transition-colors">
+                <button
+                  onClick={() => handleViewDetails(item.campaignId)}
+                  className="bg-[#508C9B] hover:bg-[#3d6f7a] py-2 px-8 rounded-3xl text-lg transition-colors"
+                >
                   View Details
                 </button>
               </div>

@@ -11,6 +11,7 @@ const AdminPanel = () => {
 
   const BACKEND_URL = import.meta.env.VITE_API_GATEWAY_URL;
   const GUARDIAN_ADDRESS = import.meta.env.VITE_GUARDIAN_ADDRESS; // Your relayer wallet
+  const isProcessingAction = (action, id) => processing?.action === action && processing?.id === id;
 
   useEffect(() => {
     fetchDisputedMilestones();
@@ -82,7 +83,7 @@ const AdminPanel = () => {
     }
 
     try {
-      setProcessing(milestoneId);
+      setProcessing({ action: 'resume', id: milestoneId });
       const authHeader = await getAuthHeader();
 
       const response = await fetch(
@@ -97,7 +98,7 @@ const AdminPanel = () => {
       
       if (data.success) {
         alert('✅ Milestone resumed! Cooling period restarted.');
-        fetchDisputedMilestones();
+        await fetchDisputedMilestones();
       } else {
         alert(`❌ ${data.message}`);
       }
@@ -115,7 +116,7 @@ const AdminPanel = () => {
     }
 
     try {
-      setProcessing(milestoneId);
+      setProcessing({ action: 'cancel-milestone', id: milestoneId });
       const authHeader = await getAuthHeader();
 
       const response = await fetch(
@@ -130,7 +131,7 @@ const AdminPanel = () => {
       
       if (data.success) {
         alert('✅ Milestone cancelled! Creator must submit new milestone.');
-        fetchDisputedMilestones();
+        await fetchDisputedMilestones();
       } else {
         alert(`❌ ${data.message}`);
       }
@@ -148,7 +149,7 @@ const AdminPanel = () => {
     }
 
     try {
-      setProcessing(campaignId);
+      setProcessing({ action: 'cancel-project', id: campaignId });
       const authHeader = await getAuthHeader();
 
       const response = await fetch(
@@ -162,7 +163,8 @@ const AdminPanel = () => {
       const data = await response.json();
       
       if (data.success) {
-        alert('🚨 Project cancelled! All donors can now claim refunds.');        // Refresh the disputes list to remove cancelled campaign's milestones        fetchDisputedMilestones();
+        alert('🚨 Project cancelled! All donors can now claim refunds.');
+        await fetchDisputedMilestones();
       } else {
         alert(`❌ ${data.message}`);
       }
@@ -304,38 +306,74 @@ const AdminPanel = () => {
                       {/* Resume */}
                       <button
                         onClick={() => handleResumeRequest(dispute._id, dispute.campaign._id)}
-                        disabled={processing === dispute._id}
+                        disabled={!!processing}
                         className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Resume (False Alarm)
+                        {isProcessingAction('resume', dispute._id) ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Resuming...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Resume (False Alarm)
+                          </>
+                        )}
                       </button>
 
                       {/* Cancel Milestone */}
                       <button
                         onClick={() => handleCancelMilestone(dispute._id, dispute.campaign._id)}
-                        disabled={processing === dispute._id}
+                        disabled={!!processing}
                         className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Cancel Milestone
+                        {isProcessingAction('cancel-milestone', dispute._id) ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Cancelling...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel Milestone
+                          </>
+                        )}
                       </button>
 
                       {/* Kill Project */}
                       <button
                         onClick={() => handleCancelProject(dispute.campaign._id, dispute.campaign.title)}
-                        disabled={processing === dispute.campaign._id}
+                        disabled={!!processing}
                         className="bg-red-700 hover:bg-red-800 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
-                        </svg>
-                        🚨 Kill Project
+                        {isProcessingAction('cancel-project', dispute.campaign._id) ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Killing Project...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                            </svg>
+                            🚨 Kill Project
+                          </>
+                        )}
                       </button>
                     </div>
 

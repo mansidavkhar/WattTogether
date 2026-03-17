@@ -1,5 +1,6 @@
 import { PrivyProvider } from '@privy-io/react-auth';
 import { polygonAmoy } from 'viem/chains';
+import wattTogetherLogo from '../assets/wattTogether_logo.png';
 
 const PrivyAuthProvider = ({ children }) => {
   // Suppress React hydration warnings and CORS errors from Privy in development
@@ -51,7 +52,7 @@ const PrivyAuthProvider = ({ children }) => {
         appearance: {
           theme: 'dark',
           accentColor: '#508C9B',
-          logo: 'https://your-logo-url.com/logo.png',
+          logo: wattTogetherLogo,
           showWalletLoginFirst: false,
         },
         embeddedWallets: {

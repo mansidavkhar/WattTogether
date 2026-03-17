@@ -1,6 +1,7 @@
 const Featured = [
     {
       "id": 1,
+      "campaignId": "69b94ff3e89cb161a5282935",
       "title": "Solar Village Electrification",
       "projectInfo": "Installing solar panels in a rural village to provide electricity for 500+ households.",
       "image": "https://www.intellistride.com/wp-content/uploads/2024/09/Top-5-IoT-Innovations-Transforming-the-Renewable-Energy-Industry.jpg",
@@ -8,6 +9,7 @@ const Featured = [
     },
     {
       "id": 2,
+      "campaignId": "69b95a7f72661f5f38196246",
       "title": "Wind Energy for Schools",
       "projectInfo": "Setting up small wind turbines to power remote schools with clean energy.",
       "image": "https://www.nationalgrid.com/sites/default/files/images/EnergyExplained_DifferentTypesRenewableEnergy_640x360.jpg",
@@ -15,6 +17,7 @@ const Featured = [
     },
     {
       "id": 3,
+      "campaignId": "69b95df872661f5f3819624f",
       "title": "Community Biogas Plant",
       "projectInfo": "Developing a biogas plant to convert organic waste into clean cooking fuel for 200 families.",
       "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToLqiBCN9RNY05aDF808RTRuoNjDBLS9j9ow&s",
@@ -22,6 +25,7 @@ const Featured = [
     },
     {
       "id": 4,
+      "campaignId": "69b95ebe72661f5f38196258",
       "title": "Off-Grid Solar for Healthcare",
       "projectInfo": "Providing uninterrupted solar power to rural healthcare clinics.",
       "image": "https://img-cdn.krishijagran.com/101350/renewable-energy.jpg",

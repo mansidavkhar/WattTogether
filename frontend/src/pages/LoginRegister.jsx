@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
+import loginBackground from '../assets/login_register_background.jpg';
 
 const LoginRegister = () => {
   const navigate = useNavigate();
@@ -91,59 +92,97 @@ const LoginRegister = () => {
     login();
   };
 
+  const trustHighlights = [
+    'Passwordless email authentication',
+    'Auto-created embedded wallet',
+    'Secure member sync with backend'
+  ];
+
   return (
-    <div className="relative w-full min-h-screen flex items-center justify-center overflow-y-auto">
-      <div className="relative z-10 flex items-center justify-center min-h-screen w-full px-4 my-5">
-        <div className="w-full max-w-lg bg-[#201E43]/95 rounded-lg shadow-xl p-8">
-          <h1 className='text-4xl font-bold text-white text-center mb-6 font-sans tracking-tight'>
-            Welcome to WattTogether
-          </h1>
-          <p className="text-xl text-white text-center mb-8">
-            Sign in to fund the future of renewable energy
-          </p>
+    <div className="min-h-screen bg-white px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:grid-cols-2">
+        <div className="relative overflow-hidden p-8 text-white sm:p-10 lg:p-12">
+          <img
+            src={loginBackground}
+            alt="Renewable energy"
+            className="absolute inset-0 h-full w-full scale-105 object-cover blur-[1.5px]"
+          />
+          <div className="absolute inset-0 bg-[#134B70]/65" />
 
-          {/* Error Message Display */}
+          <div className="relative z-10">
+            <p className="inline-flex items-center rounded-full border border-white/40 px-4 py-1 text-xs font-semibold tracking-[0.18em] uppercase text-white/95">
+              Member Access
+            </p>
+
+            <h1 className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl">
+              Welcome to WattTogether
+            </h1>
+            <p className="mt-5 max-w-md text-base text-white/90 sm:text-lg">
+              Sign in to discover vetted renewable projects, track campaign milestones, and support clean energy communities.
+            </p>
+
+            <div className="mt-10 space-y-3">
+              {trustHighlights.map((item) => (
+                <div key={item} className="flex items-center gap-3 text-sm sm:text-base">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white">✓</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-8 sm:p-10 lg:p-12">
+          <div className="mb-8">
+            <h2 className="text-3xl font-extrabold text-[#134B70]">Log In or Create Account</h2>
+            <p className="mt-2 text-sm text-slate-600 sm:text-base">
+              One secure email step gets you into your member dashboard.
+            </p>
+          </div>
+
           {error && (
-            <div className="mb-6 bg-red-900/50 border border-red-500 p-3 rounded-lg">
-              <p className="text-red-400 text-sm text-center">{error}</p>
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-sm font-medium text-red-700">{error}</p>
             </div>
           )}
 
-          {/* Loading State */}
           {isLoading && (
-            <div className="mb-6 bg-blue-900/50 border border-blue-500 p-3 rounded-lg">
-              <p className="text-blue-400 text-sm text-center">Authenticating...</p>
+            <div className="mb-5 rounded-xl border border-[#a7d3de] bg-[#e8f5f9] px-4 py-3">
+              <p className="text-sm font-medium text-[#134B70]">Authenticating with Privy...</p>
             </div>
           )}
 
-          {/* Login Button */}
           <button
             onClick={handleLoginClick}
             disabled={isLoading || !ready}
-            className={`w-full py-4 rounded-md transition-colors duration-300 uppercase tracking-wider font-semibold text-lg ${
+            className={`group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl py-4 text-base font-bold tracking-wide transition-all duration-300 sm:text-lg ${
               isLoading || !ready
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-[#508C9B] text-white hover:bg-[#134B70]"
+                ? 'cursor-not-allowed bg-slate-200 text-slate-500'
+                : 'bg-[#134B70] text-white hover:bg-[#0f3d5e]'
             }`}
           >
             {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white"></div>
                 Signing In...
-              </div>
+              </>
             ) : (
-              "Sign In with Privy"
+              <>
+                Continue with Privy
+                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </>
             )}
           </button>
 
-          <div className="mt-8 text-center">
-            <p className="text-gray-400 text-sm">
-              Powered by Privy - Secure, passwordless authentication
-            </p>
-            <p className="text-gray-500 text-xs mt-2">
-              Your wallet will be created automatically on first sign-in
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-sm text-slate-700">
+              Powered by Privy for passwordless authentication. Your embedded wallet is created automatically on first sign-in.
             </p>
           </div>
+
+          <p className="mt-4 text-xs text-slate-500">
+            By continuing, you agree to use WattTogether responsibly and support transparent climate initiatives.
+          </p>
         </div>
       </div>
     </div>

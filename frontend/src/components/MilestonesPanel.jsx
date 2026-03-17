@@ -23,6 +23,7 @@ const MilestonesPanel = ({ campaignId, creatorId, campaignStatus }) => {
   const [currentMemberId, setCurrentMemberId] = useState(null);
   const [isCreatingMilestone, setIsCreatingMilestone] = useState(false);
   const [isReleasingFunds, setIsReleasingFunds] = useState(null);
+  const [isVetoingMilestoneId, setIsVetoingMilestoneId] = useState(null);
   const [expandedDiscussions, setExpandedDiscussions] = useState(new Set());
   
   // Signature modal state
@@ -272,6 +273,8 @@ const MilestonesPanel = ({ campaignId, creatorId, campaignStatus }) => {
         return;
       }
 
+      setIsVetoingMilestoneId(milestone._id);
+
       // Get wallet address
       const embeddedWallet = wallets.find((wallet) => wallet.walletClientType === 'privy');
       const userWalletAddress = embeddedWallet?.address || walletAddress;
@@ -381,6 +384,8 @@ const MilestonesPanel = ({ campaignId, creatorId, campaignStatus }) => {
         errorMsg = '❌ This milestone cannot be vetoed (already released, cancelled, or disputed)';
       }
       alert(errorMsg + ': ' + error.message);
+    } finally {
+      setIsVetoingMilestoneId(null);
     }
   };
 
@@ -962,9 +967,9 @@ const MilestonesPanel = ({ campaignId, creatorId, campaignStatus }) => {
                     <div className="border-t border-gray-200 pt-3 mt-3 flex justify-center">
                       <button
                         onClick={() => !milestone.hasVetoed && handleVetoMilestone(milestone)}
-                        disabled={milestone.hasVetoed}
+                        disabled={milestone.hasVetoed || isVetoingMilestoneId === milestone._id}
                         className={`${
-                          milestone.hasVetoed 
+                          milestone.hasVetoed || isVetoingMilestoneId === milestone._id
                             ? 'bg-gray-400 cursor-not-allowed' 
                             : 'bg-orange-500 hover:bg-orange-600'
                         } text-white font-semibold py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-md`}
@@ -975,6 +980,14 @@ const MilestonesPanel = ({ campaignId, creatorId, campaignStatus }) => {
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                             <span>✅ Already Vetoed</span>
+                          </>
+                        ) : isVetoingMilestoneId === milestone._id ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Processing Veto...</span>
                           </>
                         ) : (
                           <>

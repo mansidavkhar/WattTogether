@@ -86,21 +86,23 @@ export default function BrowseCampaigns() {
           {/* Hero Banner Section */}
           <div className="bg-white border-b-2 border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <div className="text-center">
-                <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#134B70] via-[#508C9B] to-[#134B70] bg-clip-text text-transparent">
-                  Discover Innovative Projects
-                </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-                  Support meaningful campaigns that are making a real difference in communities worldwide
-                </p>
-                <div className="flex justify-center gap-8 text-center">
-                  <div className="bg-gradient-to-br from-[#134B70] to-[#508C9B] text-white rounded-xl px-8 py-5 shadow-lg">
-                    <div className="text-4xl font-bold">{activeCampaigns.length}</div>
-                    <div className="text-sm opacity-90 mt-1">Active Campaigns</div>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                <div className="text-center lg:text-left lg:max-w-2xl">
+                  <h1 className="text-3xl sm:text-4xl font-bold mb-3 bg-gradient-to-r from-[#134B70] via-[#508C9B] to-[#134B70] bg-clip-text text-transparent">
+                    Discover Innovative Projects
+                  </h1>
+                  <p className="text-lg text-gray-600 max-w-3xl">
+                    Support meaningful campaigns that are making a real difference in communities worldwide
+                  </p>
+                </div>
+                <div className="flex justify-center lg:justify-end gap-4 text-center">
+                  <div className="bg-gradient-to-br from-[#134B70] to-[#508C9B] text-white rounded-xl px-6 py-4 shadow-lg min-w-[170px]">
+                    <div className="text-3xl font-bold">{activeCampaigns.length}</div>
+                    <div className="text-xs sm:text-sm opacity-90 mt-1">Active Campaigns</div>
                   </div>
-                  <div className="bg-gradient-to-br from-[#508C9B] to-[#134B70] text-white rounded-xl px-8 py-5 shadow-lg">
-                    <div className="text-4xl font-bold">{fundedCampaigns.length}</div>
-                    <div className="text-sm opacity-90 mt-1">Successfully Funded</div>
+                  <div className="bg-gradient-to-br from-[#508C9B] to-[#134B70] text-white rounded-xl px-6 py-4 shadow-lg min-w-[170px]">
+                    <div className="text-3xl font-bold">{fundedCampaigns.length}</div>
+                    <div className="text-xs sm:text-sm opacity-90 mt-1">Successfully Funded</div>
                   </div>
                 </div>
               </div>
